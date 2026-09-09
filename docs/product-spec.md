@@ -13,6 +13,8 @@
 
 **Foaie** es un diario visual de lecturas para registrar libros físicos, ebooks y audiolibros, conservar recuerdos y comprender los propios hábitos lectores. Su unidad principal no es “el libro del catálogo”, sino **la experiencia personal de lectura**: cuándo se leyó, en qué formato, cuánto se avanzó, qué se sintió, qué frases se guardaron y cómo encaja esa lectura en el historial.
 
+El diario adopta visualmente la forma de **Mi álbum**: cada año es un álbum, cada mes un capítulo, cada página lógica un fragmento de ese capítulo y cada sesión terminada un cromo. Esta experiencia reúne portadas, resúmenes temporales y huellas personales sin sustituir la Biblioteca ni duplicar los datos de lectura.
+
 *Foaie* significa “hoja” en rumano, la lengua materna de su creadora. Representa simultáneamente una hoja de papel, la página de un libro y el lugar donde permanecen las huellas de una lectura. Esta historia personal es parte central de la marca, no una explicación secundaria.
 
 La aplicación debe diferenciar claramente tres conceptos:
@@ -60,6 +62,7 @@ Los pilares son:
 - **Multiformato real:** páginas para papel/ebook y minutos para audiolibros, sin forzar equivalencias engañosas.
 - **Datos propios:** exportación y copia de seguridad como requisito de confianza.
 - **Recuerdo, no solo conteo:** citas, notas, reseñas y favoritos aportan contexto emocional.
+- **Diario con forma de álbum:** Mi álbum convierte el historial en una experiencia anual y mensual que se disfruta visualmente sin perder acceso a cada sesión y sus recuerdos.
 
 ## 1.4 Diferencias frente a Goodreads y similares
 
@@ -177,8 +180,8 @@ Para uso personal, importan más la utilidad y consistencia que el crecimiento:
 
 | Nivel | Incluye | Se excluye deliberadamente |
 |---|---|---|
-| **MVP** | Acceso privado; CRUD de libros/ediciones; importación opcional por búsqueda/ISBN con edición manual; portada; biblioteca; filtros básicos; lecturas y relecturas; progreso; valoración con medias estrellas; reseña/notas/citas; dashboard simple; vista mensual; objetivo anual; tema claro/oscuro; exportación JSON/CSV | Social, recomendaciones, mapa, logros, Wrapped, estadísticas complejas |
-| **V2** | Colecciones personalizadas; retos configurables; estadísticas ampliadas; calendario; historial de actividad; importación masiva; PWA; copia/restauración; tarjetas compartibles; ficha de autores y sagas | Algoritmo de recomendaciones avanzado |
+| **MVP** | Acceso privado; CRUD de libros/ediciones; importación opcional por búsqueda/ISBN con edición manual; portada; biblioteca; filtros básicos; lecturas y relecturas; progreso; valoración con medias estrellas; reseña/notas/citas; recuerdo reflexivo opcional; dashboard simple; Mi álbum anual con capítulos mensuales y páginas lógicas; objetivo anual; tema claro/oscuro; exportación JSON/CSV | Social, recomendaciones, mapa, logros, Wrapped, estadísticas complejas |
+| **V2** | Colecciones personalizadas; retos configurables; estadísticas ampliadas; calendario; historial de actividad; importación masiva; PWA; copia/restauración; tarjetas compartibles; ficha de autores y sagas; animaciones editoriales, spreads, personalización y exportación visual de Mi álbum | Algoritmo de recomendaciones avanzado |
 | **Futuro** | Wrapped anual; logros opt-in; selector aleatorio; mapa; emociones; recomendaciones; OCR de ISBN; importadores de terceros; funciones sociales opcionales | Comercio o lectura de ebooks dentro de la app |
 
 ## 2.2 Lista cerrada del MVP
@@ -195,16 +198,16 @@ El MVP queda limitado a estas **18 capacidades**:
 8. Crear varias lecturas del mismo libro para representar relecturas.
 9. Guardar fecha de inicio/fin y progreso en páginas, porcentaje o minutos.
 10. Valorar de 0 a 5 en pasos de 0,5 al finalizar o abandonar.
-11. Guardar reseña, notas, citas y personajes favoritos.
+11. Guardar reseña, notas, múltiples citas por sesión —con página/localización y nota personal opcionales—, elegir una cita destacada opcional y conservar un recuerdo de lectura opcional formado por una pregunta reflexiva y una respuesta editable.
 12. Marcar favorito, comprado y prestado.
 13. Consultar biblioteca en cuadrícula y lista.
 14. Buscar y filtrar por estado, formato, género, valoración y año leído.
 15. Ver dashboard con lectura actual, acceso rápido, objetivo anual y cifras del mes/año.
-16. Ver álbum mensual con portadas, total, páginas, audio y media.
+16. Recorrer **Mi álbum** por años y meses: sesiones terminadas como cromos paginados de forma lógica y estable, con portada, datos de sesión, relecturas identificadas, cita destacada opcional, resumen mensual, favorito del mes y cierre anual básico.
 17. Cambiar entre modo claro, oscuro y sistema.
 18. Exportar datos propios en JSON y las lecturas en CSV.
 
-**Fuera del MVP:** colecciones, retos distintos del objetivo anual, gráficos avanzados, calendario, estadísticas de países, recomendaciones, logros, Wrapped, PWA offline e importación masiva.
+**Fuera del MVP:** colecciones, retos distintos del objetivo anual, gráficos avanzados, calendario, estadísticas de países, recomendaciones, logros, Wrapped, PWA offline, importación masiva y, para Mi álbum, animación de pegado, paso de página animado, celebración al completar una página, spreads, personalización, reordenación manual y exportación visual.
 
 ## 2.3 Límites del MVP multiusuario y privado
 
@@ -221,7 +224,7 @@ Desde la primera migración:
 
 ## 2.4 Criterio de validación del MVP
 
-La versión está validada cuando la usuaria puede completar sin ayuda este ciclo: añadir edición → iniciar lectura → actualizar progreso → terminar y valorar → localizarla en biblioteca → verla en el álbum mensual → exportar sus datos.
+La versión está validada cuando la usuaria puede completar sin ayuda este ciclo: añadir edición → iniciar lectura → actualizar progreso y guardar citas → terminar sin campos reflexivos obligatorios → localizarla en Biblioteca → verla como cromo en Mi álbum y abrir su sesión → exportar sus datos.
 
 ---
 
@@ -233,7 +236,8 @@ La versión está validada cuando la usuaria puede completar sin ayuda este cicl
 |---|---|---|
 | Inicio/dashboard | Mantener | Resume lo importante y activa tareas rápidas |
 | Biblioteca completa + lecturas actuales + historial | Agrupar en **Biblioteca** con vistas/filtros | Evita tres destinos que muestran los mismos objetos |
-| Vista mensual + anual + calendario | Agrupar en **Diario**; mensual en MVP | Son distintas escalas temporales de la misma información |
+| Pendientes por leer | Añadir una vista exploratoria por estanterías dinámicas de género dentro de **Biblioteca > Pendientes** | Ayuda a decidir “¿Qué me apetece leer ahora?” sin sustituir las herramientas de gestión |
+| Vista temporal mensual + anual | Unificar en **Mi álbum**: año como álbum, mes como capítulo y sesión terminada como cromo | Evita duplicar las mismas lecturas en destinos paralelos y convierte el diario visual en una experiencia coherente |
 | Estadísticas | Mantener; básica en MVP | Necesita espacio propio al crecer |
 | Retos | V2, destino propio | No es imprescindible para registrar lecturas |
 | Colecciones | Integrar dentro de Biblioteca en V2 | Son una forma de organizar libros, no un mundo aparte |
@@ -258,18 +262,24 @@ Aplicación
 │   ├── Todo
 │   ├── Leyendo
 │   ├── Pendientes
-│   ├── Terminados
+│   │   ├── Explorar por estanterías de género
+│   │   └── Vista completa de un género
+│   ├── Leídos
 │   ├── Abandonados
 │   ├── Ficha de libro/edición
 │   │   ├── Resumen
 │   │   ├── Lecturas
 │   │   └── Notas y citas
 │   └── Añadir / editar
-├── Diario
-│   ├── Mes
-│   ├── Año (V2)
-│   ├── Calendario (V2)
-│   └── Wrapped (futuro)
+├── Mi álbum
+│   ├── Año
+│   │   ├── Índice de meses
+│   │   ├── Mes
+│   │   │   ├── Resumen mensual
+│   │   │   ├── Página lógica
+│   │   │   └── Lectura / cromo
+│   │   └── Mi [año]
+│   └── Calendario (V2)
 ├── Estadísticas
 │   ├── Resumen (MVP mínimo)
 │   └── Explorador (V2)
@@ -283,11 +293,13 @@ Aplicación
 
 ## 3.3 Navegación
 
-**Escritorio:** barra lateral con Inicio, Biblioteca, Diario y Estadísticas; botón destacado “Añadir”; Configuración al pie. Retos se incorpora en V2.
+**Escritorio:** barra lateral con Inicio, Biblioteca, Mi álbum y Estadísticas; botón destacado “Añadir”; Configuración al pie. Retos se incorpora en V2.
 
-**Móvil:** barra inferior con Inicio, Biblioteca, botón central Añadir, Diario y Más. “Más” contiene Estadísticas y Configuración. La etiqueta acompaña siempre al icono.
+**Móvil:** barra inferior con Inicio, Biblioteca, botón central Añadir, Mi álbum y Más. “Más” contiene Estadísticas y Configuración. La etiqueta acompaña siempre al icono.
 
-**Secundaria:** pestañas dentro de Biblioteca y ficha; selector de mes/año en Diario; filtros en panel lateral (escritorio) o panel inferior (móvil).
+**Secundaria:** `Todos`, `Leyendo`, `Pendientes`, `Leídos` y `Abandonados` funcionan principalmente como filtros o vistas de una Biblioteca unificada; pestañas dentro de la ficha; selector de año, índice de meses y navegación de páginas en Mi álbum; filtros en panel lateral (escritorio) o panel inferior (móvil). Dentro de `Pendientes`, cada estantería de género incluye “Ver todos”, que abre Biblioteca filtrada por estado pendiente y ese género.
+
+La separación de destinos es: **Biblioteca** para gestionar y decidir qué leer; **Mi álbum** para recordar y disfrutar la historia de lectura; **Estadísticas** para analizar hábitos lectores. Foaie continúa siendo “Tu diario visual de lectura”, pero Diario no existe como destino independiente: Mi álbum es su representación visual.
 
 ## 3.4 Relaciones principales
 
@@ -295,7 +307,9 @@ Aplicación
 - “Actualizar progreso” abre una acción compacta, no el formulario completo.
 - Una cifra del dashboard abre la vista ya filtrada que la explica.
 - Un autor, saga, género o etiqueta abre Biblioteca con ese filtro.
-- Una portada mensual abre la lectura concreta, conservando el mes como contexto de retorno.
+- Una estantería de género permite explorar pendientes y “Ver todos” abre la cuadrícula o lista de Biblioteca filtrada por `Pendientes + género`.
+- Un cromo de Mi álbum abre la sesión de lectura concreta y conserva año, mes y página como contexto de retorno.
+- Un resumen mensual o anual enlaza a Estadísticas cuando se necesita ampliar el análisis, reutilizando las mismas reglas de cálculo.
 
 ## 3.5 Recorrido habitual
 
@@ -303,7 +317,7 @@ Aplicación
 Inicio → Añadir → Buscar/importar o manual → Revisar datos mínimos
 → Guardar como pendiente o iniciar lectura → Inicio
 → Actualizar progreso → Terminar → Valorar/reseñar
-→ Álbum mensual → Ficha e historial
+→ Mi álbum → capítulo mensual → cromo → sesión e historial
 ```
 
 ---
@@ -343,29 +357,45 @@ Todas las pantallas de datos deben contemplar:
 
 **Objetivo:** explorar y localizar rápidamente todas las ediciones.
 
+La Biblioteca es un destino unificado. `Todos`, `Leyendo`, `Pendientes`, `Leídos` y `Abandonados` son principalmente filtros o vistas sobre el mismo conjunto, no carruseles independientes. La separación de responsabilidades es:
+
+```text
+Estados → acceder y filtrar
+Estanterías → descubrir qué leer
+Cuadrícula/lista → consultar y gestionar
+```
+
+La vista `Pendientes` añade una experiencia exploratoria orientada a responder **“¿Qué me apetece leer ahora?”**. Organiza automáticamente los libros pendientes en estanterías horizontales según su género principal; solo muestra géneros que tengan pendientes y evita duplicar una edición en varias estanterías. Los géneros secundarios continúan disponibles como filtros. Los libros sin género aparecen en una estantería final `Sin género`, de modo que ninguno quede oculto.
+
+Cada estantería prioriza las portadas y ofrece “Ver todos”, que abre la vista completa de Biblioteca filtrada por `Pendientes + género`, donde se mantienen cuadrícula/lista, búsqueda, ordenación y filtros para consultar y gestionar. Las estanterías son agrupaciones automáticas, no colecciones personalizadas.
+
 **Información:** portada, título, autor, estado, valoración, progreso y formato; metadatos adicionales en lista.
 
-**Componentes:** buscador persistente, pestañas de estado, botón de filtros con contador, ordenación, conmutador cuadrícula/lista, `BookCard`, paginación o carga incremental.
+**Componentes:** buscador persistente, filtros de estado, botón de filtros con contador, ordenación, conmutador cuadrícula/lista, `BookCard`, `PendingGenreShelves`, `GenreShelf`, `HorizontalBookRail`, paginación o carga incremental.
 
 **Acciones:** abrir ficha, actualizar progreso desde menú contextual, editar, iniciar/releer y eliminar con confirmación.
 
 **Vacío inicial:** llamada a añadir/importar. **Sin resultados:** resumen de filtros como chips y “Limpiar filtros”.
 
-**Móvil:** cuadrícula de 2 columnas; filtros como bottom sheet a pantalla casi completa; controles importantes no dependen de hover.
+**Móvil:** cuadrícula de 2 columnas; estanterías desplazables horizontalmente con el dedo desde 320 px; filtros como bottom sheet a pantalla casi completa; controles importantes no dependen de hover.
 
-**Escritorio:** 5–7 columnas según ancho; filtros laterales opcionales; densidad cómoda; vista lista sin tabla pesada.
+**Escritorio:** 5–7 columnas según ancho; estanterías operables con trackpad, ratón y teclado, con botones anterior/siguiente cuando sean necesarios; filtros laterales opcionales; densidad cómoda; vista lista sin tabla pesada.
+
+La referencia a una biblioteca física será sutil, editorial y contemporánea: una línea, borde, sombra baja o cambio leve de superficie puede sugerir una balda, sin madera, texturas ni skeuomorfismo. La interfaz permanece neutra para que las portadas sean la principal fuente de color. No hay autoplay, bucle infinito ni desplazamiento circular; los extremos y la posición dentro de la colección deben resultar comprensibles.
 
 ## 4.4 Ficha de libro
 
 **Objetivo:** reunir la edición y todos los recuerdos asociados.
 
-**Información:** portada grande; título/autor; edición; estado actual; progreso; valoración; reseña; historial de lecturas; citas/notas; saga, géneros y etiquetas.
+**Información:** portada grande; título/autor; edición; estado actual; progreso; valoración; reseña; historial de lecturas; citas/notas; recuerdo reflexivo de cada sesión; saga, géneros y etiquetas.
 
 **Componentes:** cabecera visual con color derivado de portada (con contraste verificado), `BookCover`, estado, CTA contextual, pestañas Resumen/Lecturas/Recuerdos, cronología.
 
+En el detalle de una sesión terminada, la portada puede aportar una capa cromática contextual para sugerir que la persona entra en el recuerdo visual de esa lectura. Esta capa se limita a superficies secundarias, cita destacada, bordes, pequeños acentos y elementos decorativos. No transforma el tema completo ni modifica tipografía, estructura, navegación principal, controles críticos, estados semánticos o foco. Si no existe un color válido, la pantalla usa íntegramente la paleta estable de Foaie.
+
 **Acciones:** iniciar/releer, actualizar, terminar, editar ficha, añadir nota/cita, marcar favorito, eliminar.
 
-**Vacíos parciales:** “Todavía no has guardado citas” + “Añadir cita”; no ocultar la sección sin explicación.
+**Vacíos parciales:** “Todavía no has guardado citas” + “Añadir cita” y “Aún no has escrito qué te dejó esta lectura” + una acción opcional; no ocultar la sección sin explicación ni presionar para completarla.
 
 **Móvil:** portada centrada, datos esenciales debajo, CTA fija inferior; pestañas desplazables; metadatos en acordeón.
 
@@ -397,23 +427,37 @@ Panel compacto con valor actual, nuevo valor, unidad y botones rápidos (+10 pá
 
 ## 4.7 Finalizar o abandonar
 
-Solicita fecha, valoración opcional, reseña opcional y favorito. Al abandonar, permite motivo privado y progreso final. “Sin valoración” es distinto de 0 estrellas. Si se termina una relectura, crea/cierra la lectura actual, no sobrescribe la anterior.
+Finalizar una lectura debe seguir siendo rápido: cambiar el estado y guardar la fecha es la única acción esencial. La valoración, la reseña, la cita destacada y el recuerdo reflexivo son opcionales, se pueden omitir mediante “Ahora no” y completar o editar posteriormente. “Sin valoración” es distinto de 0 estrellas. Si se termina una relectura, se cierra la sesión actual sin sobrescribir la anterior y se genera otro cromo identificado como `Relectura`.
 
-## 4.8 Vista mensual / Diario
+El flujo recomendado es: confirmar fecha y guardar la finalización → enriquecimiento opcional con valoración → elegir cita destacada si existen citas → responder una pregunta reflexiva opcional → guardar esos recuerdos y ofrecer “Ver en mi álbum”. La sesión queda terminada en el primer paso; cerrar, usar “Ahora no” o fallar después no revierte ese estado. “Otra pregunta” permite cambiar la propuesta sin convertir el cierre en un cuestionario.
 
-**Objetivo:** convertir el mes en un álbum memorable y verificable.
+Banco inicial: “¿Qué imagen se me ha quedado?”, “¿A qué me ha recordado?”, “¿Qué idea me ha molestado?” y “¿Qué pregunta me deja este libro?”. Se pueden añadir preguntas del mismo tono, por ejemplo, “¿Qué quiero conservar de esta lectura?” y “¿Qué ha cambiado en mi forma de mirar?”. La selección rota un banco pequeño y excluye, cuando sea posible, las últimas preguntas mostradas a esa persona; no necesita recomendación algorítmica. Solo se persisten la pregunta finalmente aceptada y su respuesta cuando la persona guarda el recuerdo.
 
-**Información:** mes/año, portadas terminadas, valoración de cada lectura, total de libros/páginas/minutos, media, favorito, género principal y comparación con el mes anterior.
+Al abandonar, el flujo solicita fecha de cierre, permite motivo privado y progreso final, sin mostrar la incorporación al álbum.
 
-**Regla temporal:** una lectura pertenece al mes de `finished_at`, según zona horaria de la usuaria. Una relectura cuenta como otra lectura; se etiqueta “Relectura”.
+## 4.8 Mi álbum
 
-**Acciones:** cambiar mes, abrir lectura, elegir favorito del mes, exportar imagen (V2).
+**Objetivo:** representar visualmente el diario de lectura para recordar y disfrutar lo leído sin duplicar Biblioteca ni Estadísticas.
 
-**Vacío:** “Este mes aún no hay lecturas terminadas”; muestra lecturas activas y enlace para ir al mes anterior.
+Cada año es un álbum; los meses son capítulos; una página lógica es un fragmento del capítulo; cada `reading_session` terminada es un cromo. El álbum es una proyección de las sesiones, no una entidad independiente.
 
-**Móvil:** portada en 2–3 columnas, métricas apiladas y comparación textual.
+**Información:** selector de año, índice de meses, mes y página actuales, portadas, título, autor, fecha, valoración opcional, distintivo de relectura y cita destacada opcional. Cada capítulo incluye libros terminados, páginas, audio, media, favorito del mes y comparación útil con el mes anterior. `Mi [año]` cierra el álbum con libros, páginas, audio y media; en la Etapa 9 incorpora géneros, autores, libros de cinco estrellas y otras estadísticas ya aprobadas.
 
-**Escritorio:** composición editorial; portadas 5–7 columnas y panel resumen lateral o superior.
+**Regla temporal:** una sesión pertenece al año y mes de `finished_at`, según la zona horaria de la usuaria. Se ordena por `finished_at` y un desempate estable. Una relectura genera otro cromo con sus propios datos, citas y recuerdo, identificado como `Relectura`.
+
+**Paginación:** un mes puede ocupar una o varias páginas lógicas; nunca se asume `1 mes = 1 página`. El tamaño se decide mediante prototipos que comparen inicialmente 8, 10 y 12 cromos. Una vez elegido, la pertenencia a cada página se calcula antes del layout y permanece estable entre dispositivos. Un mes con pocas lecturas usa una composición más abierta sin crear huecos falsos; un mes vacío no genera páginas de cromos.
+
+**Acciones:** cambiar año o mes, ir a página anterior/siguiente, abrir la sesión concreta, elegir favorito mensual y acceder a Estadísticas. La URL conserva año, mes y página. No se depende de gestos ni animaciones.
+
+**Recuerdo:** el cromo puede mostrar una única cita destacada, si existe. El resto de citas, la pregunta y respuesta reflexivas, reseña y notas se consultan en el detalle de la sesión, bajo una sección como “Lo que me dejó”; no se crea otra ficha ni se sobrecarga la página general.
+
+**Vacío:** “Este mes aún no tiene lecturas terminadas”; conserva el índice anual y permite ir a otro mes. Los estados loading y error mantienen la geometría, el contexto temporal y una recuperación clara.
+
+**Móvil:** una página lógica cada vez, cuadrícula habitual de 2 columnas, resumen apilado, controles explícitos e indicador “Página n de total”. Una página puede requerir desplazamiento vertical sin cambiar su contenido lógico.
+
+**Escritorio:** 4–6 columnas según el prototipo, índice de meses lateral o superior y resumen junto al contenido cuando haya espacio. El MVP muestra una página lógica; los spreads son posteriores.
+
+**Evolución posterior:** animación breve de incorporación o “pegado” del cromo, paso de página, celebración al completar una página, spreads, personalización, reordenación manual y exportación visual. Son mejoras progresivas; Mi álbum funciona completamente sin ellas y respeta `prefers-reduced-motion`.
 
 ## 4.9 Estadísticas
 
@@ -454,7 +498,7 @@ Preferencias de idioma, zona horaria, inicio de semana, tema, privacidad, objeti
 │ LECTORIA     │ Buenos días                              [+ Añadir] │
 │ Inicio ●     ├───────────────────────────────┬──────────────────────┤
 │ Biblioteca   │ LEYENDO AHORA                 │ OBJETIVO 2026        │
-│ Diario       │ [PORTADA] Título              │ 24 / 40 libros       │
+│ Mi álbum     │ [PORTADA] Título              │ 24 / 40 libros       │
 │ Estadísticas │           Autor               │ [████████░░] 60 %    │
 │              │           186 / 420 páginas   │ Ver lecturas →       │
 │              │           [████░░░] 44 %      │                      │
@@ -483,6 +527,30 @@ Preferencias de idioma, zona horaria, inicio de semana, tema, privacidad, objeti
 │ 4.5 ★     38 %      5 ★       Pend.     4 ★       Aband.            │
 └─────────────────────────────────────────────────────────────────────┘
 ```
+
+### Biblioteca — Pendientes por género
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│ Biblioteca                                            [+ Añadir]   │
+│ Todo | Leyendo | Pendientes ● | Leídos | Abandonados               │
+│                                                                     │
+│ PENDIENTES POR LEER                                                 │
+│                                                                     │
+│ Thriller y misterio                              Ver todos →        │
+│ ‹  [PORTADA] [PORTADA] [PORTADA] [PORTADA] [PORTADA]  ›            │
+│ ─────────────────────────────────────────────────────────           │
+│                                                                     │
+│ Fantasía                                         Ver todos →        │
+│ ‹  [PORTADA] [PORTADA] [PORTADA] [PORTADA] [PORTADA]  ›            │
+│ ─────────────────────────────────────────────────────────           │
+│                                                                     │
+│ Sin género                                       Ver todos →        │
+│ ‹  [PORTADA] [PORTADA] [PORTADA]                    ›              │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+Las filas son listas horizontales desplazables y finitas, no carruseles tradicionales. “Ver todos” conduce a la cuadrícula o lista filtrada del género correspondiente.
 
 ## 5.3 Ficha individual
 
@@ -522,19 +590,23 @@ Preferencias de idioma, zona horaria, inicio de semana, tema, privacidad, objeti
 └──────────────────────────────────────────────────────────────┘
 ```
 
-## 5.5 Vista mensual
+## 5.5 Mi álbum — año, mes y página
 
 ```text
-┌───────────────────────────────────────────────────────────────────┐
-│ ‹  Julio 2026  ›                              [Elegir mes ▼]     │
-│ 6 libros · 1.842 páginas · 11 h 20 min · 4,3 ★                  │
-├──────────────────────────────────────┬────────────────────────────┤
-│ [PORTADA] [PORTADA] [PORTADA]        │ FAVORITO DEL MES           │
-│ 4 ★       5 ★ ♥     3.5 ★           │ [PORTADA] Título           │
-│ [PORTADA] [PORTADA] [PORTADA]        │ Género principal: Fantasía │
-│ 4.5 ★     4 ★       5 ★             │ vs junio: +2 libros        │
-└──────────────────────────────────────┴────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│ Mi álbum                         [‹ 2025]  2026  [2027 ›]          │
+│ Ene Feb Mar Abr May Jun Jul Ago Sep Oct Nov Dic   [Mi 2026]       │
+├────────────────────────────────────────┬───────────────────────────┤
+│ JULIO · PÁGINA 1 DE 2                  │ RESUMEN DE JULIO          │
+│                                        │ 10 libros · 1.842 páginas │
+│ [CROMO] [CROMO] [CROMO] [CROMO]       │ 11 h 20 min · 4,3 ★      │
+│ [CROMO] [CROMO] [CROMO] [CROMO]       │ Favorito: [PORTADA]       │
+│                                        │ vs junio: +2 libros       │
+│ [Página anterior] [Página siguiente]   │                           │
+└────────────────────────────────────────┴───────────────────────────┘
 ```
+
+Cada cromo representa una sesión terminada y puede incluir portada, título, autor, fecha, valoración, `Relectura` y una cita destacada opcional. El número lógico de cromos por página se decidirá tras comparar prototipos de 8, 10 y 12; no cambia según el viewport.
 
 ## 5.6 Estadísticas
 
@@ -575,6 +647,20 @@ Preferencias de idioma, zona horaria, inicio de semana, tema, privacidad, objeti
 ## 6.1 Dirección visual
 
 Editorial contemporánea: fondos tranquilos, tipografía muy legible, portadas saturadas como fuente principal de color y animación discreta. La UI no compite con las cubiertas.
+
+Mi álbum traduce la metáfora de hoja, página y huella a una composición editorial: cromos con portada protagonista, capítulos mensuales y páginas con ritmo y espacio en blanco. Puede sugerir un álbum físico mediante márgenes, capas, líneas y cambios sutiles de superficie, sin texturas realistas, adhesivos infantiles ni skeuomorfismo excesivo. La cita destacada aporta una huella personal breve; preguntas y respuestas completas permanecen en el detalle para conservar una vista general limpia.
+
+### Color contextual en el detalle del cromo
+
+La identidad global de Foaie permanece estable. Al abrir el detalle de un cromo o `reading_session` terminada, una capa contextual opcional puede usar colores inspirados en su portada para reforzar la sensación de entrar en el pequeño mundo o recuerdo de ese libro. No es un tema completo por lectura y no se aplica a la aplicación, Biblioteca, Mi álbum ni navegación global.
+
+Puede afectar de forma controlada a fondos o superficies secundarios, la sección de cita destacada, bordes, pequeños acentos y elementos decorativos o secundarios. Permanecen siempre definidos por los tokens base de Foaie: tipografía, fondo general, texto principal, estructura, navegación, error, éxito, aviso, foco visible y controles críticos.
+
+**MVP:** la interfaz y sus tokens semánticos quedan preparados para aceptar valores contextuales con fallback a la paleta normal. Los prototipos pueden usar valores mock o manuales previamente validados; no se añade extracción automática ni una dependencia técnica de las portadas.
+
+**Evolución:** se extraen varios colores candidatos de la portada y se elige uno cromáticamente útil, no necesariamente el dominante. Antes de exponerlo a la interfaz se normalizan luminosidad y saturación, se generan variantes para temas claro y oscuro, acento/hover/superficie suave/borde y texto compatible, y se valida cada combinación. Si ninguna opción cumple, se conserva el fallback de Foaie.
+
+La jerarquía visual es `paleta base de Foaie → tema claro/oscuro → color contextual validado del detalle → elementos secundarios que optan por usarlo`. Ningún componente hereda el color contextual de manera indiscriminada.
 
 ## 6.2 Paleta clara
 
@@ -655,6 +741,16 @@ Todos los controles tienen default, hover, active, focus-visible, disabled, load
 | `AppShell` | Navegación, usuario, contenido | Toda la app | desktop, mobile |
 | `BookCover` | URL, título, autor, tamaños, prioridad | Todas las vistas | xs–hero, placeholder, seleccionable |
 | `BookCard` | Edición, estado, progreso, rating | Biblioteca, recientes, mes | grid, list, compact, selectable |
+| `ReadingAlbum` | Año, capítulos mensuales, páginas y resúmenes | Mi álbum | loading, empty, error |
+| `AlbumYearPicker` | Año disponible y selección | Mi álbum | compact, full |
+| `AlbumMonthIndex` | Meses, actividad y destino | Mi álbum | horizontal, sidebar |
+| `AlbumPageNavigation` | Página actual, total y destinos | Mi álbum | compact, full |
+| `AlbumPage` | Sesiones de un mes y página lógica | Mi álbum | sparse, regular |
+| `ReadingSticker` | Sesión terminada, edición, cita destacada | Mi álbum | standard, reread, without-quote |
+| `ReadingReflection` | Pregunta, respuesta y edición posterior | Cierre/detalle de sesión | prompt, read-only, edit |
+| `PendingGenreShelves` | Estanterías derivadas de pendientes agrupados por género principal | Biblioteca > Pendientes | loading, empty, error |
+| `GenreShelf` | Género, selección de libros, total y enlace filtrado | Exploración de pendientes | genre, uncategorized |
+| `HorizontalBookRail` | Lista finita de libros y controles de desplazamiento | Estanterías de género | touch, controls cuando sean necesarios |
 | `RatingStars` | Valor, máximo, paso 0,5, editable | Ficha, formulario, mes | input, read-only, compact |
 | `ReadingProgress` | actual, total, unidad, porcentaje | Inicio, ficha, reto | lineal, circular, compacta |
 | `CurrentReadingHero` | lectura activa + edición | Inicio | single, carousel |
@@ -674,7 +770,7 @@ Todos los controles tienen default, hover, active, focus-visible, disabled, load
 | `LoadingSkeleton` | forma y cantidad | Todas | cover, card, chart, form |
 | `ConfirmDialog` | título, consecuencias, confirmación | Eliminar/abandonar | standard, destructive |
 | `ToastNotification` | tipo, mensaje, acción | Global | success, error, undo |
-| `PeriodPicker` | periodo, límites | Diario/estadísticas | month, year, range V2 |
+| `PeriodPicker` | periodo, límites | Mi álbum/estadísticas | month, year, range V2 |
 | `AccessibleChart` | datos, etiquetas, descripción | Estadísticas | chart + table toggle |
 
 ### Contratos importantes
@@ -683,6 +779,9 @@ Todos los controles tienen default, hover, active, focus-visible, disabled, load
 - El progreso recibe unidad (`PAGES`, `PERCENT`, `MINUTES`) y no deduce conversiones.
 - Toda portada requiere `alt`; en contexto redundante puede usar `alt=""` para no repetir título adyacente.
 - Componentes de datos admiten `loading`, `empty` y `error`, evitando que cada pantalla reinvente esos estados.
+- La composición futura será `PendingGenreShelves → GenreShelf → HorizontalBookRail → BookCover / BookCard`. `HorizontalBookRail` es una lista horizontal desplazable con semántica de lista, no un carrusel tradicional: no tiene autoplay, bucle infinito ni una diapositiva activa obligatoria.
+- La composición de Mi álbum será `ReadingAlbum → AlbumMonthIndex → AlbumPage → ReadingSticker`, acompañada por `AlbumYearPicker` y `AlbumPageNavigation`. El cromo recibe una sesión terminada; no representa una obra ni crea una copia persistente del libro.
+- Los componentes de resumen mensual, anual, Dashboard y Estadísticas consumen las mismas funciones de cálculo y definiciones; solo cambia su presentación.
 
 ---
 
@@ -791,8 +890,6 @@ Foaie comenzará como un **monolito modular**: una aplicación Next.js y una bas
 - El proveedor inicial puede cambiar: no se introducirán APIs propietarias en el dominio sin un adaptador claro.
 
 ## 8.3 Tablas del núcleo
-
-## 8.2 Tablas del núcleo
 
 Leyenda: **PK** clave primaria, **FK** clave foránea, **NN** obligatorio.
 
@@ -937,7 +1034,15 @@ Restricciones: `finished_at >= started_at`; una sola sesión READING por `user_e
 
 ### `quotes`
 
-Misma estructura básica que notas, con `quote_text` text NN, `comment` text opcional, ubicación opcional y spoiler. Separarla facilita exportar citas y tratarlas visualmente.
+Cada cita pertenece a una sesión concreta: `id` uuid PK; `reading_session_id` FK NN; `quote_text` text NN; `location_label` varchar(50) opcional; `comment` text opcional; `is_spoiler` boolean NN false; `is_featured` boolean NN false; timestamps. La persona puede crear, editar y eliminar varias citas propias durante o después de la lectura. Un índice único parcial garantiza como máximo una cita destacada por sesión. Al eliminar la destacada, la sesión queda sin cita destacada; no se copia el texto a Mi álbum.
+
+### `reading_reflections`
+
+Recuerdo reflexivo opcional y uno-a-uno con la sesión: `id` uuid PK; `reading_session_id` FK NN unique; `prompt_key` varchar(80) NN; `prompt_text` text NN; `response_text` text NN; timestamps. La fila solo existe cuando la persona guarda una respuesta; ausencia significa que omitió el recuerdo. Se conserva `prompt_text` como instantánea para que cambios futuros de redacción o traducción no alteren el sentido de una respuesta histórica, mientras `prompt_key` identifica la pregunta del banco.
+
+El banco de preguntas vive en configuración/código, no en una tabla por usuario. Una rotación determinista ordena el banco a partir de la cuenta y la sesión para variar el primer resultado, excluye cuando sea posible las preguntas de recuerdos guardados recientemente y avanza localmente con “Otra pregunta”. No se persisten preguntas meramente mostradas ni posiciones derivadas. Esta estrategia reduce repeticiones sin introducir recomendaciones ni historial técnico innecesario.
+
+Tanto `quotes` como `reading_reflections` heredan la propiedad mediante `reading_session → user_edition → user`; toda lectura y mutación comprueba esa ruta en el servidor. Una lectura de 2026 y una relectura de 2031 conservan citas y recuerdo independientes.
 
 ### `collections`, `collection_items` (V2)
 
@@ -966,9 +1071,12 @@ Work N─M Author       Work N─M Genre       Work N─M Series
 Edition N─M Contributor
 UserEdition 1─N ReadingSession 1─N ProgressEntry
 ReadingSession 1─N Note / Quote
+ReadingSession 1─0..1 ReadingReflection
 UserEdition N─M Tag / Collection
 User 1─N Goal
 ```
+
+Mi álbum se deriva de `reading_sessions` con estado `FINISHED`; no añade `album_items`, `album_pages` ni `stickers`. Cada sesión terminada produce un cromo, incluidas las relecturas. Año y mes proceden de `finished_at`; dentro del mes se usa un orden estable por `finished_at`, `created_at` e `id`. La página lógica se calcula a partir de la posición y un tamaño global pendiente de prototipado entre 8, 10 y 12 cromos. El viewport solo cambia la cuadrícula visual, nunca la pertenencia a la página.
 
 ---
 
@@ -981,6 +1089,7 @@ User 1─N Goal
 - Páginas y audio se muestran separados; no convertir horas a páginas.
 - “Sin valorar” se excluye de la media.
 - Los filtros y definiciones deben aparecer junto a la cifra.
+- Dashboard, Mi álbum y Estadísticas reutilizan estas funciones de cálculo; ninguna pantalla mantiene una fórmula alternativa. En la Etapa 7, `Mi [año]` usa solo libros, páginas, audio y media ya disponibles. La Etapa 9 añade géneros, autores, libros de cinco estrellas y otras estadísticas aprobadas mediante la misma capa.
 
 | Estadística | Cálculo | Datos necesarios / excepciones |
 |---|---|---|
@@ -1068,6 +1177,10 @@ Cumplir **WCAG 2.2 nivel AA** como criterio de aceptación, incluidas zonas obje
 - Escape cierra overlays; el foco queda atrapado en modal y vuelve al disparador.
 - No usar una tarjeta entera con controles anidados inválidos; enlace de título/portada y menú son objetivos separados.
 - Tras guardar, foco en confirmación o encabezado pertinente; tras error, resumen anunciado.
+- Las estanterías de pendientes usan secciones con encabezado y listas semánticas. Sus libros se recorren mediante enlaces y tabulación normal; los botones anterior/siguiente, si aparecen, tienen nombres accesibles, se desactivan en los extremos y nunca crean un bucle.
+- Al mover una estantería mediante sus controles, el elemento enfocado permanece visible y la nueva posición conserva contexto; no se depende de gestos, hover ni arrastre como única interacción.
+- Mi álbum ofrece selectores y botones nativos para año, mes y página; pasar página mediante gesto o animación nunca es la única vía. Tras navegar, el foco se mueve al encabezado de la nueva página o capítulo y se anuncia “{Mes}, página {n} de {total}” sin repetir toda la lista.
+- El cromo es un elemento de lista enlazado a una sesión concreta. `Relectura`, valoración y existencia de cita destacada se comunican mediante texto accesible, no solo por posición, icono o color.
 
 ## 11.3 Semántica y lectores de pantalla
 
@@ -1076,6 +1189,7 @@ Cumplir **WCAG 2.2 nivel AA** como criterio de aceptación, incluidas zonas obje
 - Estrellas anunciadas como “4,5 de 5”; input con radios/slider accesible y opción “Sin valorar”.
 - Barras con nombre, valor actual, mínimo y máximo textuales.
 - Toasts importantes con región `aria-live`; errores no desaparecen automáticamente.
+- La cita destacada usa `blockquote` cuando se muestra; su ausencia no genera controles vacíos. La pregunta y respuesta reflexivas se presentan con encabezados y texto normal dentro del detalle de sesión.
 
 ## 11.4 Contraste y percepción
 
@@ -1083,6 +1197,7 @@ Cumplir **WCAG 2.2 nivel AA** como criterio de aceptación, incluidas zonas obje
 - Estado no comunicado solo por color: icono + texto/patrón.
 - Zoom al 200 % sin pérdida y reflow a 320 CSS px.
 - Movimiento reducido respetado; no autoplay.
+- El color contextual del detalle de una lectura nunca se usa directamente desde una portada: debe validarse y adaptarse para el tema activo. WCAG 2.2 AA prevalece sobre la fidelidad cromática; texto principal, estados, foco y controles críticos conservan los colores estables de Foaie. La ausencia o rechazo de un candidato activa el fallback y ninguna información depende solo del color contextual.
 
 ## 11.5 Formularios y tacto
 
@@ -1090,6 +1205,7 @@ Cumplir **WCAG 2.2 nivel AA** como criterio de aceptación, incluidas zonas obje
 - Objetivos táctiles preferentemente 44×44 px; mínimo WCAG 2.2 AA cuando aplique.
 - Teclados: numérico para páginas/minutos, búsqueda para ISBN/título.
 - Guardado evita doble envío y mantiene datos ante fallo.
+- En el cierre de lectura, valoración, cita destacada y recuerdo están etiquetados como opcionales, admiten “Ahora no” y no impiden marcar la sesión como terminada. “Otra pregunta” anuncia la nueva pregunta y conserva el foco en la región reflexiva.
 
 ## 11.6 Breakpoints por contenido
 
@@ -1099,6 +1215,12 @@ Cumplir **WCAG 2.2 nivel AA** como criterio de aceptación, incluidas zonas obje
 | 600–1023 px | 3–5 portadas; navegación compacta; paneles a 1–2 columnas |
 | ≥1024 px | Sidebar; 5–7 portadas; filtros laterales; 2 columnas analíticas |
 | ≥1440 px | Contenedor máximo 1440 px; no estirar líneas ni portadas indefinidamente |
+
+Las estanterías funcionan desde 320 px mediante desplazamiento táctil nativo y admiten trackpad, rueda/ratón cuando el sistema lo permita y teclado. Una portada parcialmente visible puede indicar que existe más contenido, sin ocultar el enlace “Ver todos”. En escritorio pueden añadirse controles anterior/siguiente cuando mejoren el descubrimiento. No se usa autoplay, carrusel infinito ni desplazamiento circular; los extremos deben ser perceptibles y la posición dentro de la colección comprensible.
+
+El desplazamiento iniciado por controles puede ser suave solo cuando no exista preferencia de movimiento reducido. Con `prefers-reduced-motion: reduce` será inmediato y no añadirá animaciones de entrada, barridos ni movimientos decorativos. La balda visual mantiene contraste suficiente y una apariencia neutra para no competir con las portadas.
+
+Las páginas lógicas de Mi álbum conservan las mismas sesiones entre 320 y 1440 px. En móvil se presenta una página en 2 columnas y puede continuar verticalmente; en escritorio usa 4–6 columnas. El orden visual coincide con el DOM. Las futuras animaciones de pegado, celebración, paso de página y spreads se desactivan o sustituyen por cambios instantáneos con `prefers-reduced-motion`, sin ocultar contenido ni acciones.
 
 ## 11.7 Gráficos pequeños
 
@@ -1110,7 +1232,7 @@ Cumplir **WCAG 2.2 nivel AA** como criterio de aceptación, incluidas zonas obje
 
 ## 11.8 Pruebas
 
-Teclado manual; lectores de pantalla (NVDA en Windows y VoiceOver en iOS); zoom/reflow; contraste; modo oscuro; reducción de movimiento; tamaños 320, 375, 768, 1024 y 1440; datos extremos (títulos largos, sin portada, 0/500 libros).
+Teclado manual; lectores de pantalla (NVDA en Windows y VoiceOver en iOS); zoom/reflow; contraste; modo oscuro; reducción de movimiento; tamaños 320, 375, 768, 1024 y 1440; datos extremos (títulos largos, sin portada, 0/500 libros). Mi álbum se prueba con meses vacíos, escasos y de varias páginas, fechas empatadas, relecturas, citas ausentes o largas, retorno desde la sesión y pertenencia lógica idéntica en todos los viewports.
 
 ---
 
@@ -1152,7 +1274,7 @@ Si React/TypeScript resultan demasiado nuevos a la vez, una primera versión con
 ```text
 app/
   (auth)/
-  (app)/dashboard, library, diary, statistics, settings
+  (app)/dashboard, library, album, statistics, settings
   api/ o server-actions según caso
 components/
   books, readings, charts, forms, ui, layout
@@ -1284,7 +1406,7 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 ### Etapa 1 — Base visual navegable
 
 **Objetivo:** aplicación desplegada, accesible y responsive con datos simulados.  
-**Tareas:** proyecto, TypeScript, lint/formato, tokens, AppShell, rutas, componentes UI, estados vacíos/carga/error.  
+**Tareas:** proyecto, TypeScript, lint/formato, tokens, AppShell, rutas, componentes UI, estados vacíos/carga/error; preparar tokens semánticos con fallback para que el futuro detalle de sesión pueda aceptar un color contextual mock/manual sin alterar el tema global.<br>
 **Módulos:** `app`, `components/ui`, `components/layout`, `styles`.  
 **Dependencias:** Etapas 0 y 0.5.  
 **Resultado:** navegación funcional sin base de datos.  
@@ -1317,22 +1439,22 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 ### Etapa 4 — Biblioteca
 
 **Objetivo:** encontrar y explorar.  
-**Tareas:** cuadrícula/lista, búsqueda, filtros MVP, ordenación, URL con estado de filtros, paginación, skeleton/empty/error.  
-**Módulos:** `app/library`, `BookCard`, `FilterPanel`, consultas.  
+**Tareas:** cuadrícula/lista, búsqueda, filtros MVP, ordenación, URL con estado de filtros, paginación, skeleton/empty/error; vista exploratoria de pendientes con estanterías dinámicas por género principal, estantería `Sin género` y acceso “Ver todos” a la Biblioteca filtrada por `Pendientes + género`.<br>
+**Módulos:** `app/library`, `BookCard`, `FilterPanel`, `PendingGenreShelves`, `GenreShelf`, `HorizontalBookRail`, consultas.<br>
 **Dependencias:** Etapa 3.  
 **Resultado:** biblioteca funcional con 500 registros de prueba.  
-**Terminada cuando:** combinaciones devuelven datos correctos, filtros se pueden compartir/recargar y el rendimiento es aceptable.
+**Terminada cuando:** las combinaciones devuelven datos correctos, los filtros se pueden compartir/recargar y el rendimiento es aceptable; las estanterías solo muestran géneros con pendientes, no duplican libros por géneros secundarios, incluyen los pendientes sin género y funcionan desde 320 px con tacto, trackpad, ratón y teclado, sin autoplay ni bucle infinito y respetando WCAG 2.2 AA y `prefers-reduced-motion`.
 
 **Git:** rama `feature/library`; punto de commit al estabilizar vistas y al completar búsqueda/filtros; mensaje final sugerido `feat: add library search and filters`; `push` después de cada commit estable; fusionar cuando pruebas de filtros, recarga de URL, accesibilidad, responsive y rendimiento con datos de prueba pasen.
 
 ### Etapa 5 — Lecturas y progreso
 
 **Objetivo:** completar el núcleo del diario.  
-**Tareas:** iniciar, actualizar, terminar, abandonar, relectura, historial, rating de medias estrellas, reseña/notas/citas.  
+**Tareas:** iniciar, actualizar, terminar, abandonar, relectura, historial, rating de medias estrellas y reseña; crear, editar y eliminar múltiples citas por sesión con localización y nota personal opcionales; elegir una cita destacada; guardar o editar un recuerdo reflexivo opcional.<br>
 **Módulos:** `components/readings`, servicios, ficha.  
 **Dependencias:** Etapa 4.  
 **Resultado:** ciclo de lectura completo.  
-**Terminada cuando:** estados y fechas permanecen consistentes, una relectura no sobrescribe historia y el E2E crítico pasa.
+**Terminada cuando:** estados y fechas permanecen consistentes, una relectura no sobrescribe historia, citas y recuerdo pertenecen a la sesión correcta y finalizar sigue siendo posible sin valoración, cita destacada ni respuesta reflexiva; el E2E crítico pasa.
 
 **Git:** rama `feature/readings`; commits separados para ciclo de estado y recuerdos si facilita la revisión; mensaje sugerido `feat: implement reading progress tracking`; `push` tras cada flujo estable; fusionar cuando el E2E iniciar→actualizar→terminar pase y relectura, abandono, fechas y autorización estén verificados.
 
@@ -1347,16 +1469,16 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 
 **Git:** rama `feature/dashboard`; punto de commit con dashboard completo y cifras verificadas; mensaje sugerido `feat: create reading dashboard`; `push` después de comprobar datos reales y estados vacío/error; fusionar cuando consultas, enlaces, responsive, accesibilidad y pruebas pasen.
 
-### Etapa 7 — Diario mensual
+### Etapa 7 — Mi álbum
 
-**Objetivo:** álbum mensual.  
-**Tareas:** selector, portadas, totales, media, favorito, género y comparación.  
-**Módulos:** `app/diary`, `lib/statistics/monthly`.  
+**Objetivo:** representar visualmente el diario por años, capítulos mensuales, páginas lógicas y cromos de sesiones terminadas.<br>
+**Tareas:** selector anual, índice de meses, navegación de páginas, tamaño lógico decidido tras prototipos de 8/10/12, cromos con portada y datos de sesión, relectura, cita destacada opcional y acceso al detalle; resumen mensual, favorito y cierre `Mi [año]` con libros, páginas, audio y media; loading/empty/error, URL con contexto y aislamiento multiusuario.<br>
+**Módulos:** `app/album`, `components/album`, `lib/statistics/monthly`, agregados anuales básicos.<br>
 **Dependencias:** Etapa 5.  
-**Resultado:** cualquier mes puede consultarse.  
-**Terminada cuando:** límites de mes/zona horaria, relecturas y datos faltantes tienen pruebas.
+**Resultado:** cualquier año y mes puede recorrerse como álbum sin duplicar datos de Biblioteca, sesiones o Estadísticas.<br>
+**Terminada cuando:** límites de mes/zona horaria, orden estable, paginación idéntica entre dispositivos, relecturas, citas opcionales, datos faltantes, estados de interfaz, teclado, lector de pantalla y aislamiento tienen pruebas.
 
-**Git:** rama `feature/monthly-diary`; punto de commit con navegación temporal y resumen mensual estables; mensaje sugerido `feat: add monthly reading diary`; `push` tras probar meses con y sin datos; fusionar cuando zona horaria, límites de mes, relecturas, favorito y responsive estén verificados.
+**Git:** rama `feature/reading-album`; puntos de commit al estabilizar navegación/paginación y al completar resúmenes/recuerdos; mensaje final sugerido `feat: add personal reading album`; `push` tras probar meses con y sin datos; fusionar cuando zona horaria, páginas lógicas, relecturas, favorito, responsive, accesibilidad y privacidad estén verificados.
 
 ### Etapa 8 — Importación por API
 
@@ -1372,7 +1494,7 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 ### Etapa 9 — Estadísticas MVP
 
 **Objetivo:** análisis fiable.  
-**Tareas:** consultas de libros/páginas/audio/media, meses, formatos/géneros, selector anual, alternativa tabular.  
+**Tareas:** consultas compartidas de libros/páginas/audio/media, meses, formatos/géneros, autores y libros de cinco estrellas, selector anual y alternativa tabular; enriquecer `Mi [año]` mediante esas mismas funciones, sin duplicar lógica.<br>
 **Módulos:** `app/statistics`, `lib/statistics`, charts.  
 **Dependencias:** datos reales suficientes.  
 **Resultado:** estadísticas explicables y accesibles.  
@@ -1393,7 +1515,7 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 
 ### Después del MVP
 
-Orden V2: colecciones → retos → estadísticas avanzadas/calendario → importación masiva → PWA → tarjetas compartibles → Wrapped. Recomendaciones y gamificación solo después de confirmar utilidad y calidad de datos.
+Orden V2: colecciones → retos → estadísticas avanzadas/calendario → extracción y normalización automática del color contextual → animaciones y personalización de Mi álbum → importación masiva → PWA → tarjetas compartibles → Wrapped. Para Mi álbum quedan previstos pegado del cromo, paso de página, celebración al completar una página, spreads, reordenación manual y exportación visual; serán mejoras progresivas y opcionales. La extracción de portada seguirá siendo opcional, validada y desacoplada del tema global. Recomendaciones y gamificación solo después de confirmar utilidad y calidad de datos.
 
 ---
 
@@ -1403,7 +1525,7 @@ Orden V2: colecciones → retos → estadísticas avanzadas/calendario → impor
 
 Foaie puede evolucionar de diario privado a plataforma lectora sin convertir el MVP en una plataforma prematura. La evolución se guiará por uso real, consentimiento y sostenibilidad. Las funciones sociales serán **opcionales y privadas por defecto**; el diario personal seguirá funcionando aunque una persona no participe en ninguna comunidad.
 
-## Horizonte 1 — Diario privado sólido
+## Horizonte 1 — Álbum y diario privado sólidos
 
 Objetivo: perfeccionar registro, biblioteca, recuerdos, estadísticas, exportación y sincronización web.
 
@@ -1489,7 +1611,7 @@ No se adoptarán microservicios, Kubernetes, colas o motores de búsqueda extern
 
 **Descripción corta:**
 
-> Foaie es un diario de lectura privado y visual que permite registrar libros, ebooks y audiolibros, seguir el progreso y transformar el historial en álbumes y estadísticas personales.
+> Foaie es un diario de lectura privado y visual que permite registrar libros, ebooks y audiolibros, seguir el progreso y recorrer el historial en Mi álbum y mediante estadísticas personales.
 
 **Problema:** los recuerdos y datos lectores están dispersos; las plataformas sociales priorizan comunidad sobre experiencia personal.
 
@@ -1503,7 +1625,7 @@ Next.js, React, TypeScript, PostgreSQL, Prisma, autenticación, APIs REST extern
 - Registro progresivo manual o por ISBN/API.
 - Biblioteca cover-first con filtros combinables.
 - Actualización rápida de progreso.
-- Álbum mensual y estadísticas explicables.
+- Mi álbum anual con capítulos mensuales, cromos de sesiones y recuerdos personales; estadísticas explicables.
 - Exportación de datos, tema oscuro y accesibilidad.
 
 ## 13.4 Capturas recomendadas
@@ -1512,7 +1634,7 @@ Next.js, React, TypeScript, PostgreSQL, Prisma, autenticación, APIs REST extern
 2. Biblioteca móvil y desktop con filtros activos.
 3. Ficha con historial de relectura, notas y citas.
 4. Flujo “buscar por ISBN → revisar → guardar”.
-5. Álbum mensual visual.
+5. Mi álbum: año, capítulo mensual, cromos y cierre `Mi [año]`.
 6. Estadísticas con alternativa accesible.
 7. Modo oscuro y navegación por teclado/foco.
 8. Diagrama de datos simplificado y una vista de estados vacíos/errores.
@@ -1567,7 +1689,7 @@ Las 18 capacidades de la sección 2.2 constituyen el contrato. Cualquier idea nu
 4. Biblioteca.  
 5. Lecturas y progreso.  
 6. Dashboard.  
-7. Diario mensual.  
+7. Mi álbum.<br>
 8. APIs de libros.  
 9. Estadísticas MVP.  
 10. Exportación, accesibilidad, seguridad, pruebas y release.
@@ -1610,18 +1732,20 @@ Las 18 capacidades de la sección 2.2 constituyen el contrato. Cualquier idea nu
 
 13. CSS Modules frente a Tailwind (recomendación pedagógica: CSS Modules + tokens).
 14. Librería de gráficos después de probar accesibilidad.
-15. Si las notas y citas se editan en ficha o panel lateral.
+15. **Resuelta:** las citas pertenecen a cada sesión, pueden guardarse durante la lectura y se consultan/editan en su detalle; la forma concreta de panel o página puede decidirse al diseñar el componente.
 16. Si se permiten varias lecturas simultáneas del mismo libro (recomendación MVP: una sesión activa por edición).
 17. Si una edición puede pertenecer a varios formatos (recomendación: no; cada formato es una edición/registro distinto).
 18. Plazo y política de conservación de exportaciones.
+19. Tamaño lógico de página de Mi álbum tras prototipar 8, 10 y 12 cromos; el resultado será único y estable entre dispositivos.
 
 ### Deliberadamente pospuestas
 
-19. Compartir públicamente.
-20. Algoritmo de recomendaciones.
-21. Logros, emociones y puntuaciones de racha.
-22. Modo offline y sincronización.
-23. Importadores de Goodreads/StoryGraph/CSV ajeno.
+20. Compartir públicamente.
+21. Algoritmo de recomendaciones.
+22. Logros, emociones y puntuaciones de racha.
+23. Modo offline y sincronización.
+24. Importadores de Goodreads/StoryGraph/CSV ajeno.
+25. Animaciones, spreads, personalización, reordenación y exportación visual de Mi álbum.
 
 ---
 

@@ -132,14 +132,11 @@ Foaie es serena, curiosa, sensible, editorial y contemporánea. Se siente person
 
 La identidad se construye alrededor de tres capas: **la hoja** como objeto, **la página** como unidad de lectura y **la huella** como recuerdo. Recursos posibles: esquinas plegadas, márgenes, capas de papel, líneas de anotación, transparencias suaves y movimientos de pasar página. Las portadas siguen siendo las protagonistas; la marca crea el marco sereno que las contiene.
 
-### Ideas para logotipo
+### Logotipo aprobado
 
-1. Una `F` formada por dos o tres hojas superpuestas.
-2. Una hoja rectangular con una esquina doblada cuyo espacio negativo dibuja una `F`.
-3. Dos páginas muy simples que, al encontrarse, sugieren una hoja y un marcapáginas.
-4. Un wordmark `Foaie` con una modificación discreta en la `F` o en el punto de la `i`, evitando convertir cada letra en un dibujo.
+La identidad principal combina un símbolo de hoja/página aprobado, formado por dos planos curvos en salmón y terracota, con el wordmark `Foaie` en Lora y tinta oscura. Lora es también la serif editorial de la aplicación. La composición es editorial, cálida, literaria, cercana y serena, elegante sin resultar solemne y reconocible sin competir con las portadas.
 
-La dirección recomendada es **wordmark editorial + símbolo de hoja plegada**, legible en monocromo y sin degradados obligatorios. Debe funcionar antes de añadir animación.
+La gama cromática de marfil, rosa/blush suave, terracota, marrón tinta y marrón/gris secundario queda aprobada. Los valores hexadecimales documentados son valores de trabajo hasta disponer del activo maestro o vectorial definitivo. El logo debe conservar versiones horizontal, símbolo independiente y monocroma. Los componentes de aplicación no reconstruirán el símbolo ni el wordmark con texto y CSS; consumirán el SVG oficial cuando se incorpore al repositorio.
 
 ### Favicon e icono de aplicación
 
@@ -666,47 +663,54 @@ La jerarquía visual es `paleta base de Foaie → tema claro/oscuro → color co
 
 | Token | Color | Uso |
 |---|---:|---|
-| `canvas` | `#F7F5F2` | Fondo general cálido |
-| `surface` | `#FFFFFF` | Tarjetas, menús y formularios |
-| `surface-subtle` | `#EFEBE6` | Fondos secundarios y skeleton |
-| `text` | `#201D1B` | Texto principal |
-| `text-muted` | `#68615C` | Metadatos; contraste válido sobre blanco |
-| `border` | `#D8D1CB` | Divisores y campos |
-| `brand` | `#5B3FD1` | CTA, foco de marca, elementos activos |
-| `brand-hover` | `#4930B4` | Hover del primario |
-| `brand-soft` | `#EEEAFE` | Selecciones y fondos informativos |
-| `success` | `#167B5A` | Confirmaciones y objetivo alcanzado |
-| `warning` | `#9A5A00` | Avisos y lectura abandonada contextual |
-| `danger` | `#B4233C` | Eliminación y errores |
-| `focus` | `#1769E0` | Anillo de foco visible |
-| `rating` | `#A65B00` | Estrellas con contraste; no depender solo del color |
+| `canvas` | `#F9F6F1` | Fondo general marfil cálido |
+| `surface` | `#FFFFFC` | Tarjetas, menús y formularios |
+| `surface-subtle` | `#F3E9E2` | Fondos secundarios y skeleton |
+| `text` | `#352522` | Texto principal, derivado de la tinta del wordmark |
+| `text-muted` | `#6B5B56` | Metadatos y texto secundario |
+| `border` | `#D8C8C0` | Divisores decorativos suaves |
+| `border-strong` | `#8D776F` | Límites necesarios para reconocer controles |
+| `brand-terracotta` | `#CF6545` | Plano principal del símbolo; decoración |
+| `brand-blush` | `#E6ADA2` | Plano claro del símbolo; decoración |
+| `action` | `#A5452E` | CTA y enlaces que necesitan contraste |
+| `action-hover` | `#843522` | Hover del primario |
+| `action-soft` | `#F6DED7` | Selecciones y fondos de marca suaves |
+| `on-action` | `#FFFFFC` | Texto sobre acciones principales |
+| `success` | `#267057` | Confirmaciones y objetivo alcanzado |
+| `warning` | `#8A4B12` | Avisos y lectura abandonada contextual |
+| `danger` | `#A63D3D` | Eliminación y errores |
+| `focus` | `#175CD3` | Anillo de foco estable e independiente de marca |
+| `rating` | `#9A570F` | Estrellas con contraste; no depender solo del color |
 
-No usar `brand` para todo. Las portadas aportan variedad. Éxito, aviso y error mantienen significado constante.
+Los colores del símbolo no se usan automáticamente como texto o fondo de controles: `action` es una adaptación accesible del terracota. No usar la marca para todo; las portadas aportan la variedad principal. Éxito, aviso y error mantienen significado constante.
 
 ## 6.3 Paleta oscura
 
 | Token | Color | Uso |
 |---|---:|---|
-| `canvas` | `#121110` | Fondo general |
-| `surface` | `#1D1B1A` | Tarjetas |
-| `surface-subtle` | `#292624` | Campos y skeleton |
-| `text` | `#F5F2EF` | Texto principal |
-| `text-muted` | `#BEB6B0` | Metadatos |
-| `border` | `#413C38` | Divisores |
-| `brand` | `#A997FF` | Acciones principales |
-| `brand-hover` | `#BEAFFF` | Hover |
-| `brand-soft` | `#302A52` | Selección |
-| `success` | `#56CAA1` | Éxito |
-| `warning` | `#F0B35E` | Aviso |
-| `danger` | `#FF8294` | Error |
-| `focus` | `#78A9FF` | Foco |
-| `rating` | `#FFC66D` | Estrellas |
+| `canvas` | `#181210` | Fondo general tinta cálida |
+| `surface` | `#221A17` | Tarjetas y formularios |
+| `surface-subtle` | `#30231F` | Campos y skeleton |
+| `text` | `#F8F1EA` | Texto principal |
+| `text-muted` | `#C6B6AF` | Metadatos |
+| `border` | `#4B3933` | Divisores decorativos |
+| `border-strong` | `#8C756D` | Límites de controles |
+| `brand-terracotta` | `#E47C5C` | Adaptación oscura del plano principal |
+| `brand-blush` | `#DCA094` | Adaptación oscura del plano claro |
+| `action` | `#E98767` | Acciones principales y enlaces |
+| `action-hover` | `#F09B7E` | Hover |
+| `action-soft` | `#46241C` | Selección y fondos de marca suaves |
+| `on-action` | `#2B1712` | Texto sobre acciones principales |
+| `success` | `#73C7A3` | Éxito |
+| `warning` | `#F0B56A` | Aviso |
+| `danger` | `#FF9A9A` | Error |
+| `focus` | `#8AB4FF` | Foco estable |
+| `rating` | `#F2B35F` | Estrellas |
 
 ## 6.4 Tipografía
 
-- **Inter** para interfaz y datos: amplia disponibilidad, legibilidad y excelente renderizado.
-- **Lora** opcional para títulos editoriales/meses; nunca para controles ni cifras pequeñas.
-- Fallbacks: `Inter, system-ui, sans-serif`; `Lora, Georgia, serif`.
+- **Interfaz funcional:** pila sans-serif del sistema para navegación, botones, formularios, metadatos, cifras pequeñas y texto de interfaz: `system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`. No se carga por ahora una segunda fuente web.
+- **Marca/editorial:** Lora es la serif oficial del wordmark y de los títulos editoriales. Su fuente variable se aloja en el proyecto bajo la SIL Open Font License 1.1, se integra mediante `next/font/local`, se expone a través de una variable CSS y conserva `Georgia, "Times New Roman", serif` únicamente como fallback técnico. Puede emplearse en citas destacadas cuando exista su componente específico, pero no se aplica indiscriminadamente a la interfaz funcional.
 
 Escala: 12 px metadato auxiliar; 14 px secundario; 16 px cuerpo y controles; 20 px subtítulo; 24 px título de sección; 32/40 px título de página; 48 px solo para portada mensual en escritorio. Interlineado 1,4–1,6. Nunca texto funcional por debajo de 14 px.
 

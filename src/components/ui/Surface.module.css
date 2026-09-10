@@ -1,0 +1,13 @@
+.surface {
+  padding: var(--space-6);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-low);
+}
+
+@media (min-width: 48rem) {
+  .surface {
+    padding: var(--space-8);
+  }
+}

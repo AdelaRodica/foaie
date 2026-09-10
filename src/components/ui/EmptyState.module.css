@@ -1,0 +1,28 @@
+.emptyState {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  min-height: 18rem;
+  align-content: center;
+}
+
+.decoration {
+  width: 3rem;
+  height: 4rem;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-field) var(--radius-panel) var(--radius-panel)
+    var(--radius-field);
+  background: var(--color-surface-subtle);
+  box-shadow: var(--shadow-low);
+}
+
+.emptyState h2 {
+  margin-block-end: var(--space-2);
+  font-size: var(--font-size-heading);
+}
+
+.emptyState p {
+  max-width: var(--text-max-width);
+  margin-block-end: 0;
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,67 @@
+.page {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.welcome,
+.future {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+}
+
+.welcome {
+  min-height: 20rem;
+}
+
+.future {
+  padding: var(--space-6) 0 0;
+  border: 0;
+  border-block-start: var(--border-width) solid var(--color-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.future h2 {
+  font-size: var(--font-size-subtitle);
+}
+
+.kicker,
+.note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.kicker {
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.welcome h2,
+.future h2,
+.welcome p,
+.future p {
+  max-width: var(--text-max-width);
+  margin-block-end: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+@media (min-width: 48rem) {
+  .grid {
+    grid-template-columns: minmax(0, 3fr) minmax(16rem, 2fr);
+  }
+}

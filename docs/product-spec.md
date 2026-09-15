@@ -25,7 +25,7 @@ La aplicación debe diferenciar claramente tres conceptos:
 
 Esta separación evita duplicidades y permite registrar varias ediciones o relecturas correctamente.
 
-La recomendación tecnológica definitiva es **Next.js con TypeScript, PostgreSQL y Prisma**, usando autenticación gestionada y almacenamiento de imágenes externo. Es una opción moderna y atractiva para portfolio que permite construir interfaz, servidor y API en un solo proyecto. La primera versión será multiusuario, con cuentas, sesiones y datos aislados por propietario, un despliegue inicial y ninguna función social. El aislamiento por `user_id`, la autorización por recurso, el almacenamiento por cuenta, la configuración por usuario y las consultas filtradas se consideran requisitos del MVP, no una preparación futura.
+La recomendación tecnológica definitiva es **Next.js con TypeScript y Supabase PostgreSQL**, usando Supabase Auth, Row-Level Security, `@supabase/ssr`, Zod y almacenamiento de imágenes externo. Es una opción moderna y atractiva para portfolio que permite construir interfaz, servidor y acceso a datos en un solo proyecto. La primera versión será multiusuario, con cuentas, sesiones y datos aislados por propietario, un despliegue inicial y ninguna función social. El aislamiento por `user_id`, la autorización por recurso, el almacenamiento por cuenta, la configuración por usuario y las consultas filtradas se consideran requisitos del MVP, no una preparación futura.
 
 ---
 
@@ -214,7 +214,7 @@ El MVP permitirá que cada persona cree su propia cuenta, inicie y cierre sesió
 
 Desde la primera migración:
 
-- Toda entidad personal tendrá propietario directo o una ruta inequívoca hasta `users.id`; las preferencias de cuenta también pertenecerán a ese usuario.
+- Toda entidad personal tendrá propietario directo o una ruta inequívoca hasta `public.profiles.id`; las preferencias de cuenta también pertenecerán a ese perfil.
 - Toda lectura/escritura comprobará la pertenencia en el servidor; ocultar elementos en la interfaz no constituye autorización.
 - No se utilizará un `SINGLE_USER_ID` global ni se asumirán datos compartidos implícitamente.
 - El catálogo bibliográfico podrá separar datos comunes (obra/edición) de datos personales (`user_editions`, lecturas y recuerdos).
@@ -803,7 +803,9 @@ Todos los controles tienen default, hover, active, focus-visible, disabled, load
 
 ## 8.1 Decisiones
 
-- PostgreSQL por integridad, relaciones y consultas analíticas.
+- Supabase PostgreSQL por integridad, relaciones, consultas analíticas y disponibilidad como servicio gestionado.
+- Supabase Auth para identidad, correo, credenciales, verificación y sesiones; `public.profiles` para preferencias y datos propios de Foaie.
+- Row-Level Security obligatoria en todas las tablas personales, además de la autorización en servidor.
 - UUID como claves públicas.
 - Fechas de evento como `timestamptz`; fechas de lectura que solo representan día como `date`.
 - Guardar duración en **minutos**, no texto.
@@ -817,10 +819,10 @@ Foaie comenzará como un **monolito modular**: una aplicación Next.js y una bas
 
 ### Autenticación
 
-- Un proveedor/librería mantenida gestionará registro, inicio y cierre de sesión, recuperación de acceso y sesiones seguras; no se diseñará criptografía propia.
+- Supabase Auth gestionará registro con correo y contraseña, verificación de correo, inicio y cierre de sesión, recuperación de contraseña y sesiones seguras; no se diseñará criptografía propia.
 - El MVP permite múltiples cuentas. Cada persona solo puede acceder a sus propios datos y no existe ningún flujo social o de descubrimiento entre cuentas.
-- Las sesiones usarán cookies `HttpOnly`, `Secure` y `SameSite` apropiado, expiración y rotación según el sistema elegido.
-- La identidad interna será siempre `users.id`, no el correo, para permitir cambios de dirección o distintos proveedores futuros.
+- Next.js 16 integrará Supabase mediante `@supabase/ssr`, cookies SSR y `src/proxy.ts` para mantener los tokens. `getClaims()` protegerá páginas y datos en el flujo normal; `getUser()` comprobará Auth cuando una operación sensible necesite estado actualizado. `getSession()` no constituye prueba de identidad ni autorización en servidor.
+- La identidad interna será siempre el UUID de `auth.users.id`, compartido por `public.profiles.id`, nunca el correo ni un `user_id` recibido desde el navegador.
 - El modelo podrá incorporar OAuth, MFA y gestión avanzada de dispositivos sin alterar las entidades de lectura.
 
 ### Usuarios, permisos y aislamiento
@@ -828,14 +830,18 @@ Foaie comenzará como un **monolito modular**: una aplicación Next.js y una bas
 - Cada cuenta solo accede a sus libros incorporados, lecturas, progreso, valoraciones, notas, citas, etiquetas, colecciones, retos, estadísticas, exportaciones y configuración.
 - Las operaciones del servidor obtendrán `user_id` de la sesión autenticada; nunca confiarán en un `user_id` enviado por el navegador.
 - Consultas y mutaciones filtrarán simultáneamente por ID del recurso y propietario.
-- El MVP necesita los roles `USER` y `ADMIN` solo si existe una necesidad operativa real; no se construirá un sistema complejo de permisos. El rol nunca sustituye la comprobación de propiedad.
+- El modelo de defensa será `sesión autenticada → autorización en servidor → RLS en PostgreSQL`; ninguna capa sustituye a las demás.
+- Toda tabla personal tendrá RLS y usará `auth.uid()` como identidad de base de datos. No se crearán políticas genéricas `USING (true)` para datos personales.
+- La clave `service_role`, si alguna tarea administrativa llegara a necesitarla, permanecerá exclusivamente en servidor y nunca se incluirá en el navegador ni en el flujo normal de consultas.
 - Se crearán pruebas negativas: una cuenta A no puede leer ni modificar recursos de una cuenta B, aunque conozca su UUID.
-- PostgreSQL Row-Level Security puede incorporarse como defensa adicional si el proveedor y la capa de acceso elegidos la integran bien; no reemplaza las comprobaciones de aplicación.
+- Las consultas futuras, incluidas estadísticas y exportaciones, conservarán el aislamiento por el perfil autenticado y no compartirán cachés entre cuentas.
 
 ### Base de datos y crecimiento
 
-- PostgreSQL gestionado con migraciones versionadas, claves foráneas, restricciones e índices guiados por consultas reales.
+- Supabase hosted será inicialmente un proyecto exclusivo de desarrollo. Docker y `supabase start` quedan pospuestos; podrán reconsiderarse para resets locales, pruebas RLS aisladas o CI.
+- Las migraciones SQL versionadas en Git son la fuente de verdad, con claves foráneas, restricciones e índices guiados por consultas reales. El Dashboard de Supabase no será la fuente habitual de cambios de esquema.
 - `user_id` se incluye desde el inicio en entidades personales e índices compuestos frecuentes, por ejemplo (`user_id`, `status`) o (`user_id`, `finished_at`).
+- Las entidades personales futuras conservarán `user_id` como FK a `public.profiles(id)`, pero cada tabla se creará en la etapa funcional que la necesite.
 - Los UUID evitan identificadores públicos secuenciales, pero no son una barrera de autorización.
 - Las estadísticas se calcularán inicialmente con SQL/consultas agregadas, siempre filtradas por el `user_id` de la sesión y por el periodo solicitado. Cuando el volumen lo justifique, podrán añadirse cachés, vistas materializadas o trabajos asíncronos sin cambiar la fuente de verdad ni mezclar cuentas.
 - Migraciones compatibles y revisables; los cambios destructivos requieren copia, estrategia de transición y rollback documentado.
@@ -881,9 +887,9 @@ Foaie comenzará como un **monolito modular**: una aplicación Next.js y una bas
 
 - Español como idioma inicial, pero interfaz preparada con claves de traducción desde el comienzo o antes de abrirla públicamente.
 - No concatenar frases; usar `Intl` para fechas, números y plurales.
-- Al configurar la cuenta, intentar obtener del dispositivo o navegador un identificador de zona horaria IANA válido, como `Europe/Madrid`, `Europe/Bucharest` o `America/Bogota`; no almacenar únicamente offsets fijos como `UTC+2`.
-- Guardar la zona IANA, locale e idioma por usuario. Si no puede determinarse una zona válida, usar `UTC` como fallback técnico y permitir cambiarla posteriormente en Ajustes.
-- Al registrar progreso, convertir `recorded_at` con la zona vigente para obtener `activity_date`. Un cambio posterior de `users.timezone` se aplica a actividades nuevas y no recalcula silenciosamente fechas civiles históricas ni mueve actividad entre días. No se guarda por ahora una copia de la zona en cada entrada; se reconsiderará solo si se necesita reconstruir la hora local histórica exacta.
+- Al configurar la cuenta, intentar obtener del dispositivo o navegador un identificador de zona horaria IANA, como `Europe/Madrid`, `Europe/Bucharest` o `America/Bogota`; validarlo siempre en el servidor y no almacenar únicamente offsets fijos como `UTC+2`.
+- Guardar la zona IANA en `profiles.timezone`, además del locale e idioma del perfil. Si no puede determinarse una zona válida, usar `UTC` como fallback técnico y permitir cambiarla posteriormente en Ajustes.
+- Al registrar progreso, convertir `recorded_at` con la zona vigente para obtener `activity_date`. Un cambio posterior de `profiles.timezone` se aplica a actividades nuevas y no recalcula silenciosamente fechas civiles históricas ni mueve actividad entre días. No se guarda por ahora una copia de la zona en cada entrada; se reconsiderará solo si se necesita reconstruir la hora local histórica exacta.
 - Códigos BCP 47/ISO para idiomas y países; texto Unicode en toda la cadena.
 - Diseño preparado para textos más largos y futura dirección RTL, aunque no se implemente en el MVP.
 - Rumano e inglés son candidatos naturales posteriores por identidad y alcance.
@@ -899,8 +905,9 @@ Foaie comenzará como un **monolito modular**: una aplicación Next.js y una bas
 ### Despliegue y entornos
 
 - Entornos separados de desarrollo, preview/staging y producción, con bases y credenciales distintas.
+- El desarrollo comienza contra un proyecto Supabase hosted exclusivo. No requiere Docker ni `supabase start`; esta decisión se revisará cuando los beneficios de una base local desechable compensen su instalación y consumo de espacio.
 - Despliegues reproducibles desde GitHub mediante CI; `main` representa el estado desplegable.
-- Las migraciones se ejecutan de forma controlada y observable, no automáticamente desde múltiples instancias concurrentes.
+- Las migraciones SQL se conservan en Git y se ejecutan de forma controlada y observable, no automáticamente desde múltiples instancias concurrentes. Los cambios hechos directamente en el Dashboard no sustituyen una migración versionada.
 - Variables validadas al arrancar y configuradas por entorno.
 - Región de aplicación, base y almacenamiento cercana a las personas usuarias y coherente con requisitos de protección de datos.
 - El proveedor inicial puede cambiar: no se introducirán APIs propietarias en el dominio sin un adaptador claro.
@@ -909,21 +916,24 @@ Foaie comenzará como un **monolito modular**: una aplicación Next.js y una bas
 
 Leyenda: **PK** clave primaria, **FK** clave foránea, **NN** obligatorio.
 
-### `users`
+### `auth.users` y `public.profiles`
+
+Supabase Auth administra `auth.users`: identidad, correo, credenciales, verificación y sesiones. Foaie no duplica `email` ni `password_hash` en el esquema público.
+
+`public.profiles` mantiene una relación uno-a-uno con la identidad autenticada:
 
 | Campo | Tipo aproximado | Reglas |
 |---|---|---|
-| `id` | uuid | PK |
-| `email` | varchar(320) | NN, unique, normalizado para identidad |
-| `password_hash` | text nullable | Opcional si hay enlace mágico |
-| `display_name` | varchar(80) | NN |
+| `id` | uuid | PK, FK→`auth.users(id)`, `ON DELETE CASCADE` |
+| `display_name` | varchar(80) nullable | Opcional; su ausencia nunca bloquea el registro |
 | `timezone` | varchar(64) | NN, identificador IANA validado; `UTC` como fallback técnico |
-| `locale` | varchar(10) | NN, `es-ES` |
+| `locale` | varchar(10) | NN, inicialmente `es-ES` |
 | `theme` | enum | NN: SYSTEM/LIGHT/DARK |
-| `role` | enum | NN: USER; ADMIN solo si se necesita |
 | `status` | enum | NN: ACTIVE/SUSPENDED/DELETION_PENDING |
-| `week_starts_on` | smallint | NN, 1=lunes |
+| `week_starts_on` | smallint | NN, inicialmente 1=lunes; la Racha de lectura MVP permanece siempre lunes-domingo |
 | `created_at`, `updated_at` | timestamptz | NN |
+
+Un trigger mínimo posterior al alta en `auth.users` crea el perfil dependiendo únicamente de `new.id`. No depende de `display_name` ni de `raw_user_meta_data`, no contiene lógica compleja y no llama servicios externos. Los defaults `UTC`, `es-ES`, SYSTEM, ACTIVE y 1 permiten crear siempre el perfil mínimo; los datos opcionales se completan después mediante una operación validada.
 
 ### `works`
 
@@ -996,7 +1006,7 @@ Relaciona la biblioteca personal con la edición y separa datos de propiedad de 
 | Campo | Tipo | Reglas |
 |---|---|---|
 | `id` | uuid | PK |
-| `user_id` | uuid | FK→users, NN |
+| `user_id` | uuid | FK→`public.profiles(id)`, NN |
 | `edition_id` | uuid | FK→editions, NN |
 | `library_status` | enum | NN: PENDING/READING/FINISHED/ABANDONED |
 | `is_favorite` | boolean | NN false |
@@ -1084,7 +1094,7 @@ Colección: id, user_id, name, description, cover_style, timestamps; unique por 
 
 ### `goals`
 
-`id` uuid PK; `user_id` FK; `name`; `type` enum BOOKS/PAGES/AUDIO_MINUTES/GENRES/NEW_AUTHORS/SERIES/COUNTRIES/CUSTOM; `period_start`, `period_end`; `target_value` numeric; `rule_json` jsonb para filtros; `status` enum ACTIVE/PAUSED/COMPLETED/ARCHIVED; timestamps.
+`id` uuid PK; `user_id` FK→`public.profiles(id)`; `name`; `type` enum BOOKS/PAGES/AUDIO_MINUTES/GENRES/NEW_AUTHORS/SERIES/COUNTRIES/CUSTOM; `period_start`, `period_end`; `target_value` numeric; `rule_json` jsonb para filtros; `status` enum ACTIVE/PAUSED/COMPLETED/ARCHIVED; timestamps.
 
 En el MVP solo se crea el tipo `BOOKS` para el Reto lector anual y una restricción garantiza como máximo uno por usuario y año. El progreso cuenta `reading_sessions` con estado `FINISHED` cuyo `finished_at` pertenece al año en la zona horaria del usuario; las relecturas cuentan y el valor real puede superar `target_value`. Editar estados o fechas recalcula el resultado. Los tipos por páginas, audio u otros criterios quedan reservados para evolución.
 
@@ -1100,14 +1110,14 @@ La Racha de lectura no es un `goal` ni requiere una tabla o contador propio en e
 ## 8.7 Relaciones resumidas
 
 ```text
-User 1─N UserEdition N─1 Edition N─1 Work
+AuthUser 1─1 Profile 1─N UserEdition N─1 Edition N─1 Work
 Work N─M Author       Work N─M Genre       Work N─M Series
 Edition N─M Contributor
 UserEdition 1─N ReadingSession 1─N ProgressEntry
 ReadingSession 1─N Note / Quote
 ReadingSession 1─0..1 ReadingReflection
 UserEdition N─M Tag / Collection
-User 1─N Goal
+Profile 1─N Goal
 ```
 
 Mi álbum se deriva de `reading_sessions` con estado `FINISHED`; no añade `album_items`, `album_pages` ni `stickers`. Cada sesión terminada produce un cromo, incluidas las relecturas. Año y mes proceden de `finished_at`; dentro del mes se usa un orden estable por `finished_at`, `created_at` e `id`. La página lógica se calcula a partir de la posición y un tamaño global pendiente de prototipado entre 8, 10 y 12 cromos. El viewport solo cambia la cuadrícula visual, nunca la pertenencia a la página.
@@ -1290,15 +1300,15 @@ Next.js App Router integra enrutado por archivos y capacidades de servidor/clien
 - **Next.js (App Router) + TypeScript**: aplicación completa.
 - **React**: interfaz y componentes.
 - **CSS Modules + variables CSS** como opción pedagógica recomendada; Tailwind es válido, pero no necesario. CSS propio demuestra fundamentos y hace visible el sistema de diseño.
-- **PostgreSQL**: base de datos relacional.
-- **Prisma ORM**: migraciones y acceso tipado; aprender SQL en paralelo para estadísticas.
-- **Auth.js o proveedor gestionado sencillo**: registro, inicio y cierre de sesión y recuperación de acceso para múltiples cuentas. La identidad, las sesiones y la propiedad se vinculan a `users.id`; no construir criptografía.
+- **Supabase PostgreSQL**: base relacional gestionada, con migraciones SQL versionadas en Git como fuente de verdad.
+- **Supabase Auth + Row-Level Security**: correo y contraseña, verificación, recuperación, sesiones y aislamiento por `auth.uid()`; la autorización de servidor sigue siendo obligatoria.
+- **`@supabase/ssr`**: integración de Supabase Auth con cookies SSR y `src/proxy.ts` en Next.js 16.
 - **Zod**: validación compartida servidor/formulario.
 - **React Hook Form**: formularios extensos por secciones.
 - **Recharts** o **Nivo** solo al llegar a estadísticas; verificar accesibilidad y ofrecer tabla alternativa.
 - **Almacenamiento de objetos** compatible con S3/servicio del despliegue para portadas manuales.
-- **Vitest + Testing Library** para lógica/componentes; **Playwright** para el recorrido crítico.
-- **Vercel** u otro host compatible + PostgreSQL gestionado. No acoplar dominio a un proveedor.
+- **Vitest + Testing Library** cuando exista lógica TypeScript que justifique pruebas unitarias; **Playwright** para el recorrido crítico. Vitest no forma parte de la configuración inicial de la Etapa 2.
+- **Vercel** u otro host compatible + Supabase hosted. No exponer APIs propietarias dentro del dominio sin una frontera de infraestructura.
 - **Configuración central de producto y marca**: nombre, descriptor, URLs, metadatos, logos y favicon consumidos desde una única fuente tipada.
 
 ### Alternativa de menor curva
@@ -1315,9 +1325,9 @@ app/
 components/
   books, readings, charts, forms, ui, layout
 lib/
-  auth, db, validation, dates, statistics, book-providers
-prisma/
-  schema + migrations + seed
+  auth, db, supabase, validation, dates, statistics, book-providers
+supabase/
+  config + migrations SQL + seed + pruebas RLS
 styles/
   tokens + globals + componentes
 tests/
@@ -1376,7 +1386,7 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 2. Verificar la identidad efectiva con `git config --get user.name` y `git config --get user.email`. Para conocer su origen se puede usar `git config --show-origin --get user.name` y el equivalente para el correo. Si se desea revisar la configuración global: `git config --global --list`. Antes de cambiarla se decidirá si el ajuste debe ser global (`--global`) o solo de este repositorio (sin `--global`).
 3. Crear la carpeta definitiva del proyecto con el nombre `foaie`, en una ubicación acordada y no dentro de otro repositorio por accidente.
 4. Entrar en esa carpeta e inicializar el repositorio con `git init -b main`. Si la versión de Git no acepta `-b`, usar `git init` seguido de `git branch -M main`. Se comprobará la rama con `git branch --show-current`.
-5. Crear un `.gitignore` adecuado para Next.js, Node.js y Prisma. Como mínimo debe ignorar:
+5. Crear un `.gitignore` adecuado para Next.js, Node.js y la configuración local de Supabase. Como mínimo debe ignorar:
 
    ```gitignore
    # Dependencies
@@ -1403,11 +1413,9 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
    yarn-error.log*
    pnpm-debug.log*
 
-   # Local databases and Prisma-generated local data
+   # Local databases and datos temporales de herramientas
    *.db
    *.db-journal
-   prisma/dev.db
-   prisma/dev.db-journal
 
    # OS and editors
    .DS_Store
@@ -1421,7 +1429,7 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
    .vercel/
    ```
 
-   La regla `.env.*` protege también `.env.local`, `.env.development.local` y equivalentes. Se permitirá únicamente `.env.example`, que contendrá nombres de variables y valores ficticios, nunca claves reales. Las migraciones de Prisma sí deben versionarse; los clientes o artefactos generados no.
+   La regla `.env.*` protege también `.env.local`, `.env.development.local` y equivalentes. Se permitirá únicamente `.env.example`, que contendrá nombres de variables y valores ficticios, nunca claves reales. Las migraciones SQL de Supabase sí deben versionarse; los directorios temporales o artefactos generados no.
 6. Comprobar que `.env`, `.env.local`, claves de API, contraseñas, URLs con credenciales, `node_modules` y archivos generados no aparecen en `git status`. Si existe duda, usar `git check-ignore -v <archivo>` para comprobar qué regla lo excluye.
 7. Crear un `README.md` inicial con nombre, problema, estado del proyecto, stack previsto, requisitos aún no instalados, enlace a la especificación, hoja de ruta resumida, instrucciones de seguridad y futura forma de ejecución.
 8. Guardar esta especificación como `docs/product-spec.md` dentro de la carpeta definitiva. La copia de trabajo pasa a ser la fuente oficial versionada.
@@ -1453,13 +1461,14 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 ### Etapa 2 — Base de datos y acceso privado
 
 **Objetivo:** persistencia y límites de seguridad.  
-**Tareas:** PostgreSQL, Prisma, migraciones de núcleo, seed, auth, autorización por usuario, variables seguras.  
-**Módulos:** `prisma`, `lib/db`, `lib/auth`.  
-**Dependencias:** proveedor de BD y decisión de auth.  
-**Resultado:** cuentas multiusuario, recuperación de acceso, sesiones privadas y datos persistentes.  
-**Terminada cuando:** dos cuentas pueden registrarse y autenticarse; cada una solo accede a sus registros, preferencias, archivos, estadísticas y exportaciones; la migración es limpia y el backup está probado en entorno de desarrollo.
+**Tareas:** proyecto Supabase hosted exclusivo de desarrollo; Supabase PostgreSQL y Auth; correo y contraseña, verificación y recuperación; `public.profiles`; migraciones SQL versionadas; seed ficticio; cookies SSR mediante `@supabase/ssr`; `src/proxy.ts`; autorización en servidor; RLS; Zod y variables seguras. Docker y `supabase start` quedan pospuestos.<br>
+**Módulos:** `supabase`, `lib/db`, `lib/auth`, `lib/supabase`, grupo público de autenticación y layout privado.<br>
+**Dependencias:** proyecto hosted de desarrollo y configuración segura de correo y URLs de retorno.<br>
+**Resultado:** cuentas multiusuario, recuperación de acceso, sesiones privadas, perfiles persistentes y patrón de aislamiento preparado para las entidades futuras.<br>
+**Alcance de datos:** esta etapa crea la identidad gestionada y `public.profiles`; no crea prematuramente catálogo, biblioteca, sesiones, progreso, recuerdos, objetivos, álbum, importaciones ni estadísticas.<br>
+**Terminada cuando:** dos cuentas pueden registrarse y autenticarse; cada una solo accede a su perfil; una cuenta no puede leer ni modificar el perfil de otra desde la aplicación ni ante RLS; la cadena de migraciones es reproducible, los secretos están revisados y el backup del entorno de desarrollo está probado.
 
-**Git:** rama `feature/database`; commit al completar esquema/migración y otro al cerrar autenticación si ambos cambios son grandes; mensajes sugeridos `feat: add database schema for books and readings` y `feat: add private user authentication`; `push` después de cada hito estable, nunca con `.env`; fusionar cuando migraciones desde cero, autorización, pruebas y revisión de secretos pasen.
+**Git:** rama `feature/auth-private-data`; commit al completar perfil/migración y otro al cerrar autenticación si ambos cambios son grandes; mensajes sugeridos `feat: add private profile persistence` y `feat: add private user authentication`; `push` después de cada hito estable, nunca con `.env`; fusionar cuando migraciones, autorización, pruebas A/B y revisión de secretos pasen.
 
 ### Etapa 3 — Catálogo manual de libros
 
@@ -1664,7 +1673,7 @@ No se adoptarán microservicios, Kubernetes, colas o motores de búsqueda extern
 
 ## 13.2 Tecnologías a presentar
 
-Next.js, React, TypeScript, PostgreSQL, Prisma, autenticación, APIs REST externas, CSS responsive, pruebas de componentes/E2E, accesibilidad WCAG y despliegue continuo. Solo listar lo realmente implementado.
+Next.js, React, TypeScript, Supabase PostgreSQL, Supabase Auth, RLS, APIs REST externas, CSS responsive, pruebas de componentes/E2E, accesibilidad WCAG y despliegue continuo. Solo listar lo realmente implementado.
 
 ## 13.3 Funciones destacadas
 
@@ -1720,7 +1729,7 @@ Contexto → investigación/hipótesis → restricciones → decisiones de alcan
 
 ## A. Recomendación tecnológica definitiva
 
-**Next.js App Router + TypeScript + PostgreSQL + Prisma**, CSS Modules/variables CSS, autenticación sencilla gestionada, Zod, React Hook Form, pruebas con Vitest/Testing Library y Playwright, y almacenamiento de objetos para portadas. Un único repositorio y despliegue. Google Books como API principal, Open Library como fallback.
+**Next.js App Router + TypeScript + Supabase PostgreSQL, Supabase Auth, RLS y `@supabase/ssr`**, CSS Modules/variables CSS, Zod, React Hook Form cuando los formularios lo justifiquen, pruebas con las herramientas incorporadas en cada etapa y almacenamiento de objetos para portadas. Un único repositorio y despliegue. Google Books como API principal, Open Library como fallback.
 
 ## B. MVP cerrado
 

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
 
-import { AppShell } from "@/components/layout/AppShell";
 import "@/styles/globals.css";
 
 const lora = localFont({
@@ -26,9 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={lora.variable}>
-      <body>
-        <AppShell>{children}</AppShell>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

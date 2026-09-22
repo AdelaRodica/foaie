@@ -840,6 +840,7 @@ Foaie comenzará como un **monolito modular**: una aplicación Next.js y una bas
 
 - Supabase hosted será inicialmente un proyecto exclusivo de desarrollo. Docker y `supabase start` quedan pospuestos; podrán reconsiderarse para resets locales, pruebas RLS aisladas o CI.
 - Las migraciones SQL versionadas en Git son la fuente de verdad, con claves foráneas, restricciones e índices guiados por consultas reales. El Dashboard de Supabase no será la fuente habitual de cambios de esquema.
+- La Etapa 2 no requiere un seed versionado: la única tabla propia es `public.profiles`, cuyo ciclo de vida depende de `auth.users`, y no se crearán identidades Auth artificialmente desde SQL para satisfacer un criterio documental. Los dos usuarios ficticios empleados por la suite RLS real —11 pruebas superadas— son evidencia de aislamiento, no un seed reproducible. El seed de datos de dominio se introducirá en la Etapa 3, cuando existan obras, ediciones u otras entidades adecuadas.
 - `user_id` se incluye desde el inicio en entidades personales e índices compuestos frecuentes, por ejemplo (`user_id`, `status`) o (`user_id`, `finished_at`).
 - Las entidades personales futuras conservarán `user_id` como FK a `public.profiles(id)`, pero cada tabla se creará en la etapa funcional que la necesite.
 - Los UUID evitan identificadores públicos secuenciales, pero no son una barrera de autorización.
@@ -877,7 +878,9 @@ Foaie comenzará como un **monolito modular**: una aplicación Next.js y una bas
 
 ### Copias de seguridad y recuperación
 
-- Base gestionada con backups automáticos; confirmar frecuencia, retención y restauración del proveedor.
+- El proyecto hosted de desarrollo utiliza actualmente Supabase Free. La Etapa 2 exige una estrategia de recuperación documentada, migraciones versionadas y sincronizadas con remoto y ninguna dependencia de cambios manuales de esquema; no exige restaurar datos dentro del único proyecto de desarrollo.
+- Las migraciones permiten reconstruir el esquema, pero no sustituyen un backup de datos.
+- Antes de producción será obligatorio ejecutar y documentar un ejercicio real de backup y restore sobre un entorno desechable: un stack local o CI con Docker/Podman, un proyecto Supabase desechable o infraestructura de backup apropiada para producción.
 - Antes de cambios de esquema delicados, crear punto de recuperación y probar el procedimiento en un entorno no productivo.
 - El almacenamiento de objetos necesita versionado o retención acorde al riesgo.
 - La exportación personal no sustituye el backup operativo.
@@ -1327,7 +1330,7 @@ components/
 lib/
   auth, db, supabase, validation, dates, statistics, book-providers
 supabase/
-  config + migrations SQL + seed + pruebas RLS
+  config + migraciones SQL + pruebas RLS; seed de dominio desde la Etapa 3
 styles/
   tokens + globals + componentes
 tests/
@@ -1461,19 +1464,19 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 ### Etapa 2 — Base de datos y acceso privado
 
 **Objetivo:** persistencia y límites de seguridad.  
-**Tareas:** proyecto Supabase hosted exclusivo de desarrollo; Supabase PostgreSQL y Auth; correo y contraseña, verificación y recuperación; `public.profiles`; migraciones SQL versionadas; seed ficticio; cookies SSR mediante `@supabase/ssr`; `src/proxy.ts`; autorización en servidor; RLS; Zod y variables seguras. Docker y `supabase start` quedan pospuestos.<br>
+**Tareas:** proyecto Supabase hosted exclusivo de desarrollo; Supabase PostgreSQL y Auth; correo y contraseña, verificación y recuperación; `public.profiles`; migraciones SQL versionadas; cookies SSR mediante `@supabase/ssr`; `src/proxy.ts`; autorización en servidor; RLS; Zod y variables seguras. Docker y `supabase start` quedan pospuestos. Esta etapa no crea un seed SQL de usuarios Auth; utiliza dos cuentas ficticias del entorno hosted para verificar RLS mediante una suite real de 11 pruebas, sin considerarlas un seed reproducible.<br>
 **Módulos:** `supabase`, `lib/db`, `lib/auth`, `lib/supabase`, grupo público de autenticación y layout privado.<br>
 **Dependencias:** proyecto hosted de desarrollo y configuración segura de correo y URLs de retorno.<br>
 **Resultado:** cuentas multiusuario, recuperación de acceso, sesiones privadas, perfiles persistentes y patrón de aislamiento preparado para las entidades futuras.<br>
 **Alcance de datos:** esta etapa crea la identidad gestionada y `public.profiles`; no crea prematuramente catálogo, biblioteca, sesiones, progreso, recuerdos, objetivos, álbum, importaciones ni estadísticas.<br>
-**Terminada cuando:** dos cuentas pueden registrarse y autenticarse; cada una solo accede a su perfil; una cuenta no puede leer ni modificar el perfil de otra desde la aplicación ni ante RLS; la cadena de migraciones es reproducible, los secretos están revisados y el backup del entorno de desarrollo está probado.
+**Terminada cuando:** Supabase PostgreSQL y Auth están configurados; las migraciones están versionadas, aplicadas y sincronizadas con remoto; `public.profiles` y su trigger funcionan; grants y RLS están verificados; el aislamiento multiusuario está probado; registro, login, confirmación, recuperación y logout funcionan; las rutas privadas están protegidas; el perfil y la zona horaria funcionan; los secretos permanecen fuera de Git; el README refleja la arquitectura vigente; y la estrategia de recuperación está documentada sin depender de cambios manuales de esquema. Un restore drill real sigue siendo obligatorio antes de producción, pero no se ejecuta sobre el único proyecto hosted de desarrollo.
 
 **Git:** rama `feature/auth-private-data`; commit al completar perfil/migración y otro al cerrar autenticación si ambos cambios son grandes; mensajes sugeridos `feat: add private profile persistence` y `feat: add private user authentication`; `push` después de cada hito estable, nunca con `.env`; fusionar cuando migraciones, autorización, pruebas A/B y revisión de secretos pasen.
 
 ### Etapa 3 — Catálogo manual de libros
 
 **Objetivo:** crear y mantener obras/ediciones.  
-**Tareas:** validaciones, formulario progresivo, autores/géneros/editorial/saga, portada, editar/eliminar, duplicados.  
+**Tareas:** validaciones, formulario progresivo, autores/géneros/editorial/saga, portada, editar/eliminar, duplicados y seed ficticio reproducible de datos de dominio.<br>
 **Módulos:** `components/books`, `lib/validation/books`, acciones/servicios de libros.  
 **Dependencias:** Etapa 2, almacenamiento de imágenes.  
 **Resultado:** CRUD manual completo.  

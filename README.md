@@ -68,95 +68,70 @@ El MVP no incluye:
 - PWA offline.
 - Importación masiva.
 
-## Stack tecnológico previsto
+## Stack tecnológico actual
 
-- Next.js con App Router
+- Next.js 16 con App Router
+- React 19
 - TypeScript
-- React
 - CSS Modules y variables CSS
-- PostgreSQL
-- Prisma ORM
-- Auth.js o un proveedor de autenticación gestionado
+- Supabase PostgreSQL
+- Supabase Auth y Row-Level Security
+- `@supabase/ssr` para sesiones mediante cookies
 - Zod
-- React Hook Form
-- Vitest y Testing Library
-- Playwright
-- Almacenamiento de objetos compatible con S3 para portadas
-- Vercel u otro host compatible con PostgreSQL gestionado
 
 Las decisiones técnicas completas se encuentran en [docs/product-spec.md](docs/product-spec.md).
 
 ## Estado actual
 
-Foaie se encuentra en la Etapa 0.5: Git, GitHub y preparación del repositorio.
+Foaie ha completado la base visual navegable y la base de datos y acceso privado. La aplicación ya funciona como sistema multiusuario privado por defecto.
 
-Actualmente están preparados:
+Actualmente están implementados:
 
-- La rama principal `main`.
-- La configuración inicial de exclusiones de Git.
-- La especificación de producto.
-- La definición del MVP multiusuario.
-- La arquitectura inicial de privacidad, autorización y aislamiento.
-
-Todavía no se ha implementado código de aplicación ni se ha creado el commit inicial.
+- Registro, confirmación de correo, inicio y cierre de sesión y recuperación de contraseña.
+- Rutas privadas y rutas exclusivas para personas sin sesión.
+- `public.profiles` enlazado uno a uno con `auth.users`.
+- Preferencias iniciales de nombre visible y zona horaria IANA.
+- Row-Level Security y pruebas de aislamiento entre cuentas.
+- Migraciones SQL versionadas y sincronizadas con el proyecto remoto de desarrollo.
 
 ## En desarrollo
 
 Foaie está en desarrollo. La especificación de producto es la fuente de verdad para las decisiones de producto, el alcance del MVP, la arquitectura y la hoja de ruta.
 
-La primera versión será multiusuario y privada por defecto. Cada persona podrá crear y gestionar su propia cuenta, mientras que las funciones sociales permanecerán fuera del MVP.
+El desarrollo utiliza actualmente un proyecto Supabase hosted exclusivo. El stack local con Docker y `supabase start` está pospuesto deliberadamente hasta que aporte valor para pruebas aisladas, CI o restauraciones desechables.
 
-## Estructura inicial prevista
+## Estructura relevante
 
 ```text
 src/
   app/
     (auth)/
-      login/
-      register/
-      recover/
+      (guest-only)/
+      restablecer-acceso/
     (app)/
-      dashboard/
-      library/
-      diary/
-      statistics/
-      settings/
-    api/
+    auth/callback/
   components/
-    books/
-    readings/
-    charts/
-    forms/
+    auth/
     layout/
+    profile/
     ui/
   lib/
     auth/
     db/
-    validation/
-    dates/
-    statistics/
-    book-providers/
-    storage/
-    export/
+    profile/
+    supabase/
   styles/
-    tokens/
-    globals/
+    tokens.css
+    globals.css
 
-prisma/
-  schema.prisma
+supabase/
+  config.toml
   migrations/
-  seed/
-
-tests/
-  unit/
-  integration/
-  e2e/
+  tests/database/
 
 docs/
   product-spec.md
 ```
-
-Esta estructura es una guía para la implementación posterior y podrá ajustarse según las necesidades reales del proyecto.
 
 ## Privacidad y seguridad
 
@@ -173,6 +148,8 @@ La aplicación deberá:
 - Probar explícitamente que una cuenta no puede leer ni modificar recursos de otra cuenta.
 
 No se incluirán en el repositorio contraseñas, tokens, claves API, bases de datos locales, archivos `.env` reales ni artefactos generados.
+
+La configuración local reside en `.env.local`, que nunca debe versionarse. `.env.example` documenta únicamente los nombres de variables necesarios sin valores reales.
 
 ## Hoja de ruta
 

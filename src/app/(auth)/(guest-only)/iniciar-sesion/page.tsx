@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { signIn } from "@/lib/auth/actions";
 
-import styles from "../auth.module.css";
+import styles from "../../auth.module.css";
 
 type SignInPageProps = Readonly<{
   searchParams: Promise<Record<string, string | string[] | undefined>>;

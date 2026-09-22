@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { requestPasswordReset } from "@/lib/auth/actions";
 
-import styles from "../auth.module.css";
+import styles from "../../auth.module.css";
 
 type RecoveryPageProps = Readonly<{
   searchParams: Promise<Record<string, string | string[] | undefined>>;

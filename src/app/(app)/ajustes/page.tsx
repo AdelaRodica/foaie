@@ -1,3 +1,4 @@
+import { SignOutForm } from "@/components/auth/SignOutForm";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Surface } from "@/components/ui/Surface";
 
@@ -18,6 +19,7 @@ export default function SettingsPage() {
         </Surface>
         <Surface className={styles.card}>
           <h2>Cuenta y privacidad</h2>
+          <SignOutForm />
           <p>Las preferencias, los datos y la exportación se incorporarán con el acceso privado.</p>
         </Surface>
       </div>

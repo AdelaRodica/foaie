@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
-import { AppShell } from "@/components/layout/AppShell";
 import { createReadOnlyClient } from "@/lib/supabase/server";
 
-export default async function AppLayout({
+export default async function GuestOnlyLayout({
   children,
 }: Readonly<{
   children: ReactNode;
@@ -12,9 +11,9 @@ export default async function AppLayout({
   const supabase = await createReadOnlyClient();
   const { data, error } = await supabase.auth.getClaims();
 
-  if (error || !data?.claims) {
-    redirect("/iniciar-sesion");
+  if (!error && data?.claims) {
+    redirect("/");
   }
 
-  return <AppShell>{children}</AppShell>;
+  return children;
 }

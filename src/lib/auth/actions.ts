@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { env } from "@/lib/env";
@@ -104,4 +105,14 @@ export async function updatePassword(formData: FormData) {
   }
 
   redirect("/iniciar-sesion?estado=contrasena-actualizada");
+}
+
+export async function signOutAction() {
+  const supabase = await createWritableClient();
+
+  await supabase.auth.getClaims();
+  await supabase.auth.signOut({ scope: "local" });
+
+  revalidatePath("/", "layout");
+  redirect("/iniciar-sesion");
 }

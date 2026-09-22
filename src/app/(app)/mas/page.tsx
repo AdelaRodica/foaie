@@ -1,3 +1,4 @@
+import { SignOutForm } from "@/components/auth/SignOutForm";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Surface } from "@/components/ui/Surface";
@@ -17,6 +18,7 @@ export default function MorePage() {
         <div className={styles.links}>
           <ButtonLink href="/estadisticas" variant="secondary">Estadísticas</ButtonLink>
           <ButtonLink href="/ajustes" variant="secondary">Ajustes</ButtonLink>
+          <SignOutForm />
         </div>
       </Surface>
     </div>

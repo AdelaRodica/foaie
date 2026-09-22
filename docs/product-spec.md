@@ -938,71 +938,77 @@ Supabase Auth administra `auth.users`: identidad, correo, credenciales, verifica
 
 Un trigger mínimo posterior al alta en `auth.users` crea el perfil dependiendo únicamente de `new.id`. No depende de `display_name` ni de `raw_user_meta_data`, no contiene lógica compleja y no llama servicios externos. Los defaults `UTC`, `es-ES`, SYSTEM, ACTIVE y 1 permiten crear siempre el perfil mínimo; los datos opcionales se completan después mediante una operación validada.
 
+### Alcance y gobierno del catálogo (Etapa 3)
+
+Foaie mantiene la separación `work → edition → reading_session`: `work` representa la obra intelectual, `edition` una publicación concreta y `reading_session` una experiencia de lectura o relectura que se incorporará en la Etapa 5. Crear una entrada en el catálogo no la añade a ninguna biblioteca personal; la relación privada `profiles → user_editions → editions` pertenece a la Etapa 4.
+
+La Etapa 3 crea exclusivamente `works`, `editions`, `authors`, `work_authors`, `genres`, `work_genres`, `publishers`, `series` y `work_series`. Se aplazan `contributors`, `edition_contributors`, tags personales, identificadores externos, `user_editions` y `reading_sessions` hasta la etapa que los necesite.
+
+El catálogo es global y compartido. `works`, `editions`, `authors`, `publishers` y `series` incluyen `created_by_profile_id` uuid nullable, FK a `public.profiles(id)` con `ON DELETE SET NULL`, como metadato de procedencia y autorización; nunca expresa pertenencia a una biblioteca. En el MVP, cualquier cuenta autenticada puede leer y crear registros; solo quien creó un registro puede editarlo y puede eliminarlo únicamente cuando no existan referencias que lo impidan. Los registros con `created_by_profile_id IS NULL`, incluidos los del seed, son legibles pero no editables desde la aplicación. La identidad del creador se obtiene siempre de la sesión y nunca de un formulario.
+
+Las entidades globales evitan cascadas destructivas: las relaciones importantes usan `RESTRICT` o un comportamiento igualmente seguro. Una edición referenciada por una biblioteca en la Etapa 4 no podrá eliminarse físicamente. Si el uso real lo requiere, el archivado y la moderación se añadirán posteriormente.
+
 ### `works`
 
-Representa la obra, independiente de edición.
+Representa la obra, independiente de cualquier edición.
 
 | Campo | Tipo | Reglas |
 |---|---|---|
 | `id` | uuid | PK |
 | `title` | varchar(300) | NN |
+| `normalized_title` | varchar(300) | NN; auxiliar para búsqueda y advertencias, no identidad ni UNIQUE |
 | `original_title` | varchar(300) | Opcional |
 | `description` | text | Opcional |
 | `original_publication_year` | smallint | Opcional |
 | `original_language_code` | varchar(10) | Opcional |
+| `created_by_profile_id` | uuid | FK→`public.profiles(id)`, nullable |
 | `created_at`, `updated_at` | timestamptz | NN |
 
-### `authors`
+### `authors` y `work_authors`
 
-`id` uuid PK; `name` varchar(200) NN; `sort_name` varchar(200); `country_code` char(2); `birth_date` date; `death_date` date; `external_ids` jsonb opcional; timestamps. País y fechas son opcionales porque suelen faltar o ser ambiguos.
+`authors` contiene `id` uuid PK, `name` varchar(200) NN, `normalized_name` varchar(200) NN, `created_by_profile_id` uuid nullable FK→`public.profiles(id)` y timestamps. El nombre normalizado ayuda a buscar y detectar posibles duplicados, pero no es identidad ni UNIQUE.
 
-### `work_authors`
+`work_authors` relaciona `work_id` y `author_id` mediante una PK compuesta e incluye `position` smallint NN para conservar el orden de autoría. Traductores, ilustradores, narradores y demás colaboraciones se aplazan junto con `contributors` y `edition_contributors`; no se representan artificialmente como roles de autor.
 
-`work_id` uuid FK→works NN; `author_id` uuid FK→authors NN; `role` enum AUTHOR/EDITOR/ILLUSTRATOR/OTHER NN; `position` smallint NN. PK compuesta (`work_id`,`author_id`,`role`).
+### `genres` y `work_genres`
+
+`genres` es un catálogo global controlado con `id` uuid PK, `name` varchar(120) NN, `slug` varchar(140) UNIQUE y timestamps. `work_genres` usa `work_id` + `genre_id` como PK compuesta e incluye `is_primary` boolean NN. Una obra puede pertenecer a varios géneros, pero una restricción garantiza como máximo un género principal por obra. El género principal permitirá posteriormente agrupar los pendientes en Biblioteca; los géneros secundarios seguirán disponibles como filtros. Los tags personales no forman parte de la Etapa 3.
 
 ### `publishers`
 
-`id` uuid PK; `name` varchar(200) NN; `normalized_name` varchar(200) NN; timestamps. Índice/unique razonable sobre nombre normalizado.
+`publishers` contiene `id` uuid PK, `name` varchar(200) NN, `normalized_name` varchar(200) NN, `created_by_profile_id` uuid nullable FK→`public.profiles(id)` y timestamps. `normalized_name` sirve para búsqueda y avisos de posibles duplicados; no tiene restricción UNIQUE porque editoriales distintas pueden compartir una forma normalizada.
 
-### `series`
+### `series` y `work_series`
 
-`id` uuid PK; `name` varchar(250) NN; `description` text opcional; timestamps.
+`series` contiene `id` uuid PK, `name` varchar(250) NN, `normalized_name` varchar(250) NN, `description` text opcional, `created_by_profile_id` uuid nullable FK→`public.profiles(id)` y timestamps.
 
-### `work_series`
-
-`work_id` FK; `series_id` FK; `position` numeric(6,2) opcional; `label` varchar(30) opcional. PK compuesta. `position` admite novelas 0.5 o anexos; `label` permite “Precuela”.
+`work_series` representa una relación N:M con `work_id` + `series_id` como PK compuesta, `position` numeric nullable y `position_label` varchar(60) nullable. Una obra puede pertenecer a más de una serie. La posición numérica solo se usa cuando existe un orden real —incluidos valores como 2.5—; no se fuerza `0` para una precuela. Si no existe posición numérica fiable, se conserva `position = NULL` y, por ejemplo, `position_label = 'Precuela'`.
 
 ### `editions`
 
 | Campo | Tipo | Reglas |
 |---|---|---|
 | `id` | uuid | PK |
-| `work_id` | uuid | FK→works, NN |
+| `work_id` | uuid | FK→works, NN; una obra admite múltiples ediciones |
 | `publisher_id` | uuid | FK→publishers, opcional |
 | `edition_title` | varchar(300) | Opcional; título mostrado si difiere |
-| `isbn10`, `isbn13` | varchar(13) | Opcional; normalizados; unique parcial por usuario/catálogo según alcance |
-| `publication_date` | date | Opcional; admite solo año mediante campo de precisión |
-| `publication_date_precision` | enum | YEAR/MONTH/DAY, opcional |
+| `subtitle` | varchar(300) | Opcional |
+| `isbn10` | varchar(10) | Opcional; normalizado, UNIQUE cuando no es NULL |
+| `isbn13` | varchar(13) | Opcional; normalizado, UNIQUE cuando no es NULL |
+| `publication_date` | date | Opcional |
+| `publication_date_precision` | varchar | Opcional; CHECK YEAR/MONTH/DAY |
 | `language_code` | varchar(10) | Opcional |
+| `format` | varchar | NN; CHECK PHYSICAL/EBOOK/AUDIOBOOK |
 | `page_count` | integer | Opcional, >0 |
 | `audio_duration_minutes` | integer | Opcional, >0 |
-| `format` | enum | NN: PHYSICAL/EBOOK/AUDIOBOOK |
 | `cover_url` | text | Opcional |
 | `cover_storage_key` | text | Opcional |
-| `source` | enum | NN: MANUAL/GOOGLE_BOOKS/OPEN_LIBRARY |
-| `source_id` | varchar(100) | Opcional |
-| `source_synced_at` | timestamptz | Opcional |
+| `created_by_profile_id` | uuid | FK→`public.profiles(id)`, nullable |
 | `created_at`, `updated_at` | timestamptz | NN |
 
-### `contributors`
+ISBN es opcional y pertenece siempre a la edición. `format` y `publication_date_precision` usan texto con `CHECK`, no tipos ENUM de PostgreSQL, para permitir evolucionar el esquema mediante migraciones sencillas. Los títulos y nombres normalizados ayudan a buscar y advertir sobre posibles duplicados, pero no son claves de identidad ni se deduplican automáticamente. La Etapa 3 no incorpora deduplicación fuzzy.
 
-Para traductores y narradores ligados a una edición: `id` uuid PK; `name` varchar(200) NN; timestamps.
-
-### `edition_contributors`
-
-`edition_id` FK; `contributor_id` FK; `role` enum TRANSLATOR/NARRATOR/EDITOR/ILLUSTRATOR/OTHER; `position` smallint. PK compuesta.
-
-### `user_editions`
+### `user_editions` (Etapa 4; aplazado)
 
 Relaciona la biblioteca personal con la edición y separa datos de propiedad de los bibliográficos.
 
@@ -1022,7 +1028,7 @@ Relaciona la biblioteca personal con la edición y separa datos de propiedad de 
 
 Unique (`user_id`,`edition_id`). El estado se sincroniza desde la lectura abierta, pero no sustituye al historial.
 
-### `reading_sessions`
+### `reading_sessions` (Etapa 5; aplazado)
 
 Cada fila es una lectura o relectura.
 
@@ -1065,11 +1071,9 @@ No es obligatorio crear artificialmente una entrada al finalizar. Los días de l
 
 ## 8.4 Organización y recuerdos
 
-### `genres` y `work_genres`
+Los géneros y su relación con las obras forman parte del catálogo global de la Etapa 3 y se definen en la sección anterior. Esta sección reúne únicamente organización personal y recuerdos de etapas posteriores.
 
-`genres`: id, name NN, slug unique, parent_id FK opcional. `work_genres`: work_id + genre_id PK compuesta, `is_primary` boolean. En MVP se recomienda un género principal y varios secundarios.
-
-### `tags` y `user_edition_tags`
+### `tags` y `user_edition_tags` (aplazados)
 
 `tags`: id, user_id FK, name NN, color_token opcional; unique (`user_id`, nombre normalizado). Unión: `user_edition_id`, `tag_id`, PK compuesta.
 
@@ -1105,8 +1109,9 @@ La Racha de lectura no es un `goal` ni requiere una tabla o contador propio en e
 
 ## 8.6 Integración y seguridad
 
-- `external_mappings(entity_type, entity_id, provider, external_id, payload_hash, synced_at)` evita llenar cada tabla de columnas por proveedor.
+- La Etapa 3 no añade identificadores específicos de Google Books, Open Library ni otros proveedores. En la Etapa 8 podrán incorporarse `work_external_identifiers` y `edition_external_identifiers`, con proveedor e identificador externo, sin sustituir los UUID internos como identidad canónica.
 - `export_jobs` solo si la exportación llega a ser asíncrona.
+- En el catálogo compartido, la identidad de creación y autorización procede de la sesión. Las políticas permiten lectura y creación a cuentas autenticadas, limitan edición y eliminación al creador, protegen como solo lectura los registros con creador nulo y respetan las referencias existentes.
 - Todas las consultas personales filtran por el `user_id` obtenido de la sesión; nunca se acepta un identificador del cliente sin comprobar pertenencia.
 - Las relaciones personales usan `user_id` y restricciones de propiedad; borrar datos de una cuenta no debe afectar a otra. El borrado en cascada se limita a los recuerdos dependientes de esa cuenta o lectura, y las entidades de catálogo compartibles no deben arrastrar datos personales de otros usuarios.
 
@@ -1115,13 +1120,14 @@ La Racha de lectura no es un `goal` ni requiere una tabla o contador propio en e
 ```text
 AuthUser 1─1 Profile 1─N UserEdition N─1 Edition N─1 Work
 Work N─M Author       Work N─M Genre       Work N─M Series
-Edition N─M Contributor
 UserEdition 1─N ReadingSession 1─N ProgressEntry
 ReadingSession 1─N Note / Quote
 ReadingSession 1─0..1 ReadingReflection
 UserEdition N─M Tag / Collection
 Profile 1─N Goal
 ```
+
+En la Etapa 3 solo se materializa el subgrafo global `Work–Edition–Author–Genre–Publisher–Series`. `UserEdition` se incorpora en la Etapa 4, `ReadingSession` y su progreso en la Etapa 5, y las colaboraciones de edición quedan aplazadas.
 
 Mi álbum se deriva de `reading_sessions` con estado `FINISHED`; no añade `album_items`, `album_pages` ni `stickers`. Cada sesión terminada produce un cromo, incluidas las relecturas. Año y mes proceden de `finished_at`; dentro del mes se usa un orden estable por `finished_at`, `created_at` e `id`. La página lógica se calcula a partir de la posición y un tamaño global pendiente de prototipado entre 8, 10 y 12 cromos. El viewport solo cambia la cuadrícula visual, nunca la pertenencia a la página.
 
@@ -1201,7 +1207,7 @@ Flujo:
 - “No encontrado” nunca bloquea: botón visible “Añadir manualmente”.
 - Todo dato importado se puede corregir antes y después de guardar.
 - Si el ISBN ya existe, mostrar la edición existente y ofrecer añadirla a la biblioteca o registrar otra edición.
-- Si páginas/editorial/fecha difieren, preferir ISBN exacto y permitir decidir; conservar `source` y `source_id`.
+- Si páginas/editorial/fecha difieren, preferir ISBN exacto y permitir decidir. La trazabilidad futura se conservará en `work_external_identifiers` o `edition_external_identifiers`, sin añadir columnas específicas de proveedor ni sustituir los UUID internos.
 - Portada manual: JPG/PNG/WebP, límite razonable (p. ej. 5 MB), recorte no destructivo y texto alternativo derivado del contexto.
 - Audiolibros suelen tener metadatos pobres en estas APIs: duración y narrador deben ser manuales en MVP.
 
@@ -1475,14 +1481,15 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 
 ### Etapa 3 — Catálogo manual de libros
 
-**Objetivo:** crear y mantener obras/ediciones.  
-**Tareas:** validaciones, formulario progresivo, autores/géneros/editorial/saga, portada, editar/eliminar, duplicados y seed ficticio reproducible de datos de dominio.<br>
+**Objetivo:** crear y mantener un catálogo global compartido de obras y ediciones, separado de las bibliotecas personales.<br>
+**Tareas:** migraciones y RLS para `works`, `editions`, `authors`, `work_authors`, `genres`, `work_genres`, `publishers`, `series` y `work_series`; validaciones; formulario progresivo; portada; edición/eliminación con referencias seguras; avisos de posibles duplicados; y seed ficticio reproducible de datos de dominio.<br>
 **Módulos:** `components/books`, `lib/validation/books`, acciones/servicios de libros.  
 **Dependencias:** Etapa 2, almacenamiento de imágenes.  
-**Resultado:** CRUD manual completo.  
-**Terminada cuando:** se puede crear mínimo y completo, corregir, eliminar con confirmación y recuperar errores sin perder el formulario.
+**Resultado:** CRUD manual del catálogo, sin crear todavía `user_editions` ni `reading_sessions`.<br>
+**Seed:** UUID deterministas y datos totalmente ficticios con varias obras, autores, géneros, editoriales y series; una obra independiente; una obra con varios autores y géneros; varias ediciones de una obra; formatos PHYSICAL, EBOOK y AUDIOBOOK; una edición sin ISBN; una edición sin portada; posiciones de serie 1, 2 y 2.5; y una obra relacionada con más de una serie. Sus `created_by_profile_id` serán NULL. `supabase/seed.sql` se creará y habilitará durante esta etapa, no antes.<br>
+**Terminada cuando:** se puede crear un registro mínimo o completo, corregirlo, eliminarlo con confirmación cuando las referencias lo permitan y recuperar errores sin perder el formulario; las restricciones, políticas del catálogo y seed reproducible funcionan sin API; los ISBN no nulos son únicos; y las advertencias por títulos o nombres normalizados no bloquean registros legítimos.
 
-**Git:** rama `feature/book-catalog`; commit cuando el CRUD manual sea estable, con commits previos separados para validación o subida de portadas si lo requieren; mensaje sugerido `feat: implement manual book catalog`; `push` al cerrar cada parte comprobable y antes de revisión; fusionar cuando crear, editar, eliminar, duplicados, errores y permisos estén probados.
+**Git:** rama `feature/catalog`; commit cuando el CRUD manual sea estable, con commits previos separados para validación o subida de portadas si lo requieren; mensaje sugerido `feat: implement manual book catalog`; `push` al cerrar cada parte comprobable y antes de revisión; fusionar cuando crear, editar, eliminar, duplicados, errores y permisos estén probados.
 
 ### Etapa 4 — Biblioteca
 
@@ -1783,10 +1790,10 @@ Las 20 capacidades de la sección 2.2 constituyen el contrato. Cualquier idea nu
 6. Qué fecha asigna un libro al mes (recomendación: fecha de finalización).
 7. Cómo se registra progreso de ebook: páginas si se conocen; porcentaje si no.
 8. Audiolibros: minutos escuchados y duración total, sin convertir a páginas.
-9. Un género principal más secundarios, o varios iguales (recomendación: principal + secundarios).
+9. **Resuelta:** una obra admite varios géneros y como máximo uno principal; los secundarios permanecen disponibles como filtros.
 10. Política de portadas: enlace externo, copia propia o subida manual; revisar términos.
 11. Proveedor de base de datos, alojamiento y almacenamiento dentro de un presupuesto mensual.
-12. Datos que serán obligatorios: recomendación título, al menos un autor y formato; lo demás opcional.
+12. **Resuelta para el catálogo inicial:** título de obra y formato de edición son obligatorios; autoría y el resto de campos se validan conforme al flujo de alta definido en la Etapa 3, sin convertir valores normalizados en identidad.
 
 ### Pueden decidirse durante el MVP
 
@@ -1794,7 +1801,7 @@ Las 20 capacidades de la sección 2.2 constituyen el contrato. Cualquier idea nu
 14. Librería de gráficos después de probar accesibilidad.
 15. **Resuelta:** las citas pertenecen a cada sesión, pueden guardarse durante la lectura y se consultan/editan en su detalle; la forma concreta de panel o página puede decidirse al diseñar el componente.
 16. Si se permiten varias lecturas simultáneas del mismo libro (recomendación MVP: una sesión activa por edición).
-17. Si una edición puede pertenecer a varios formatos (recomendación: no; cada formato es una edición/registro distinto).
+17. **Resuelta:** cada edición tiene un único formato; otra publicación o formato se representa como una edición distinta de la misma obra.
 18. Plazo y política de conservación de exportaciones.
 19. Tamaño lógico de página de Mi álbum tras prototipar 8, 10 y 12 cromos; el resultado será único y estable entre dispositivos.
 

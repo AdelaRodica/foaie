@@ -1,0 +1,75 @@
+.message {
+  max-width: var(--text-max-width);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  background: var(--color-surface-subtle);
+}
+
+.success {
+  border-color: var(--color-success);
+}
+
+.error {
+  border-color: var(--color-danger);
+}
+
+.profile {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.profile h2,
+.profile p {
+  margin-block-end: 0;
+}
+
+.profileIntro,
+.hint {
+  color: var(--color-text-muted);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 36rem;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.label {
+  font-weight: var(--font-weight-medium);
+}
+
+.input {
+  min-width: 0;
+  min-height: var(--control-min-size);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-field);
+  background: var(--color-canvas);
+}
+
+.input:hover {
+  border-color: var(--color-action);
+}
+
+.saveButton {
+  width: fit-content;
+  min-height: var(--control-min-size);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width) solid var(--color-action);
+  border-radius: var(--radius-field);
+  background: var(--color-action);
+  color: var(--color-on-action);
+  cursor: pointer;
+  font-weight: var(--font-weight-semibold);
+}
+
+.saveButton:hover {
+  border-color: var(--color-action-hover);
+  background: var(--color-action-hover);
+}

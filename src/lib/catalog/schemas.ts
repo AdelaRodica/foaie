@@ -169,6 +169,10 @@ export const editionCreateInputSchema = editionEditableFieldsSchema
   .strict()
   .superRefine((data, context) => validateEditionFields(data, context, true));
 
+export const catalogEntryEditionInputSchema = editionEditableFieldsSchema
+  .strict()
+  .superRefine((data, context) => validateEditionFields(data, context, true));
+
 export const editionUpdateInputSchema = editionEditableFieldsSchema
   .partial()
   .strict()

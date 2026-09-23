@@ -1,5 +1,6 @@
 import type {
   AuthorSummary,
+  EditionSearchResult,
   PublisherSummary,
   SeriesSummary,
   WorkDetails,
@@ -25,6 +26,17 @@ export type SeriesSummaryRow = Readonly<{
   id: string;
   name: string;
   description: string | null;
+}>;
+
+export type EditionSearchRow = Readonly<{
+  id: string;
+  work_id: string;
+  format: string;
+  isbn10: string | null;
+  isbn13: string | null;
+  cover_url: string | null;
+  work: Readonly<{ id: string; title: string }>;
+  publisher: PublisherSummaryRow | null;
 }>;
 
 export type WorkDetailsRow = WorkSummaryRow & Readonly<{
@@ -90,6 +102,26 @@ export function mapPublisherSummary(row: PublisherSummaryRow): PublisherSummary 
 
 export function mapSeriesSummary(row: SeriesSummaryRow): SeriesSummary {
   return { id: row.id, name: row.name, description: row.description };
+}
+
+export function mapEditionSearchResult(row: EditionSearchRow): EditionSearchResult {
+  return {
+    id: row.id,
+    workId: row.work_id,
+    workTitle: row.work.title,
+    format: row.format,
+    isbn10: row.isbn10,
+    isbn13: row.isbn13,
+    coverUrl: row.cover_url,
+    publisher: row.publisher ? mapPublisherSummary(row.publisher) : null,
+  };
+}
+
+export function normalizeIsbnSearch(value: string) {
+  const normalized = value.replace(/[\s-]+/gu, "").toUpperCase();
+  if (/^\d{9}[\dX]$/.test(normalized)) return { field: "isbn10" as const, value: normalized };
+  if (/^\d{13}$/.test(normalized)) return { field: "isbn13" as const, value: normalized };
+  return null;
 }
 
 export function mapWorkDetails(row: WorkDetailsRow): WorkDetails {

@@ -1,0 +1,221 @@
+.searchForm,
+.resultSection,
+.workOverview,
+.details,
+.editionsSection {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.searchForm {
+  max-width: var(--reading-max-width);
+}
+
+.label {
+  font-weight: var(--font-weight-semibold);
+}
+
+.searchControls {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.searchInput,
+.searchButton {
+  min-width: 0;
+  min-height: var(--control-min-size);
+  border-radius: var(--radius-field);
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-border-strong);
+  background: var(--color-surface);
+}
+
+.searchButton {
+  padding: var(--space-2) var(--space-6);
+  border: var(--border-width) solid var(--color-action);
+  background: var(--color-action);
+  color: var(--color-on-action);
+  cursor: pointer;
+  font-weight: var(--font-weight-semibold);
+}
+
+.searchButton:hover {
+  border-color: var(--color-action-hover);
+  background: var(--color-action-hover);
+}
+
+.hint,
+.muted,
+.metadata,
+.isbn {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.results {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.resultSection h2,
+.resultSection p,
+.editionCard h3,
+.editionCard p,
+.workOverview h2,
+.workOverview h3,
+.workOverview p,
+.editionsSection h2 {
+  margin-block-end: 0;
+}
+
+.resultList,
+.authorList,
+.compactList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resultLink {
+  display: grid;
+  min-height: var(--control-min-size);
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-field);
+  background: var(--color-canvas);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.resultLink:hover {
+  border-color: var(--color-action);
+}
+
+.isbnResult {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.isbnResult > span:last-child {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.coverPlaceholder {
+  width: 3rem;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-field);
+  background: var(--color-action-soft);
+}
+
+.searchCover {
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-field);
+  display: block;
+  inline-size: 3rem;
+  object-fit: cover;
+}
+
+.workOverview {
+  gap: var(--space-6);
+}
+
+.description {
+  max-width: var(--text-max-width);
+  color: var(--color-text-muted);
+  white-space: pre-line;
+}
+
+.relationships {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.relationships section {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.editionGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.editionCard {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-low);
+}
+
+.cover {
+  display: grid;
+  width: 5rem;
+  aspect-ratio: 2 / 3;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-field);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-brand);
+  font-size: var(--font-size-small);
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.editionCopy {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.eyebrow {
+  color: var(--color-action);
+  font-size: var(--font-size-meta);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.emptyInline {
+  padding: var(--space-6);
+  border: var(--border-width) dashed var(--color-border-strong);
+  border-radius: var(--radius-card);
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 37.5rem) {
+  .searchControls {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .editionGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .workOverview {
+    grid-template-columns: minmax(0, 2fr) minmax(15rem, 1fr);
+  }
+}

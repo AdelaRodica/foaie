@@ -5,14 +5,17 @@ import { z } from "zod";
 import { CatalogError, catalogValidationError } from "../errors";
 import {
   mapAuthorSummary,
+  mapEditionSearchResult,
   mapPublisherSummary,
   mapSeriesSummary,
   mapWorkDetails,
   mapWorkSummary,
+  normalizeIsbnSearch,
 } from "../mappers";
 import { escapeIlikePattern, parseSearchOptions } from "../search";
 import type {
   AuthorSummary,
+  EditionSearchResult,
   GenreOption,
   PublisherSummary,
   SearchOptions,
@@ -31,6 +34,8 @@ const AUTHOR_SUMMARY_COLUMNS = "id,name,sort_name";
 const PUBLISHER_SUMMARY_COLUMNS = "id,name";
 const SERIES_SUMMARY_COLUMNS = "id,name,description";
 const GENRE_COLUMNS = "id,name,slug";
+const EDITION_SEARCH_COLUMNS =
+  "id,work_id,format,isbn10,isbn13,cover_url,work:works(id,title),publisher:publishers(id,name)";
 
 const WORK_DETAILS_COLUMNS = `
   id,
@@ -196,4 +201,42 @@ export async function getWorkDetails(workId: string): Promise<WorkDetails> {
   if (error) throw mapCatalogReadError(error, "getWorkDetails");
   if (!data) throw new CatalogError("not_found", { operation: "getWorkDetails" });
   return mapWorkDetails(data);
+}
+
+export async function findEditionByIsbn(query: string): Promise<EditionSearchResult | null> {
+  const isbn = normalizeIsbnSearch(query);
+  if (!isbn) return null;
+
+  const supabase = await createAuthenticatedCatalogClient();
+  const { data, error } = await supabase
+    .from("editions")
+    .select(EDITION_SEARCH_COLUMNS)
+    .eq(isbn.field, isbn.value)
+    .maybeSingle();
+
+  if (error) throw mapCatalogReadError(error, "findEditionByIsbn");
+  return data ? mapEditionSearchResult(data) : null;
+}
+
+export async function getWorksByAuthorId(
+  authorId: string,
+  limit = 50,
+): Promise<WorkSummary[]> {
+  const validId = parseId(authorId, "getWorksByAuthorId");
+  const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 50);
+  const supabase = await createAuthenticatedCatalogClient();
+  const { data, error } = await supabase
+    .from("work_authors")
+    .select(`work:works(${WORK_SUMMARY_COLUMNS})`)
+    .eq("author_id", validId)
+    .order("work_id", { ascending: true })
+    .limit(safeLimit);
+
+  if (error) throw mapCatalogReadError(error, "getWorksByAuthorId");
+  return data
+    .map(({ work }) => mapWorkSummary(work))
+    .sort((left, right) =>
+      left.title.localeCompare(right.title, "es", { sensitivity: "base" }) ||
+      left.id.localeCompare(right.id),
+    );
 }

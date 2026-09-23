@@ -64,6 +64,17 @@ export type GenreOption = Readonly<{
   slug: string;
 }>;
 
+export type EditionSearchResult = Readonly<{
+  id: string;
+  workId: string;
+  workTitle: string;
+  format: string;
+  isbn10: string | null;
+  isbn13: string | null;
+  coverUrl: string | null;
+  publisher: PublisherSummary | null;
+}>;
+
 export type WorkAuthorDetails = AuthorSummary & Readonly<{ position: number }>;
 export type WorkGenreDetails = GenreOption & Readonly<{ isPrimary: boolean }>;
 export type WorkSeriesDetails = Readonly<{

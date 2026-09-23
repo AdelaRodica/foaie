@@ -33,6 +33,71 @@ export type ParsedSearchOptions = Readonly<{
   shouldSearch: boolean;
 }>;
 
+export type WorkSummary = Readonly<{
+  id: string;
+  title: string;
+  originalTitle: string | null;
+  originalPublicationYear: number | null;
+  originalLanguageCode: string | null;
+}>;
+
+export type AuthorSummary = Readonly<{
+  id: string;
+  name: string;
+  sortName: string | null;
+}>;
+
+export type PublisherSummary = Readonly<{
+  id: string;
+  name: string;
+}>;
+
+export type SeriesSummary = Readonly<{
+  id: string;
+  name: string;
+  description: string | null;
+}>;
+
+export type GenreOption = Readonly<{
+  id: string;
+  name: string;
+  slug: string;
+}>;
+
+export type WorkAuthorDetails = AuthorSummary & Readonly<{ position: number }>;
+export type WorkGenreDetails = GenreOption & Readonly<{ isPrimary: boolean }>;
+export type WorkSeriesDetails = Readonly<{
+  id: string;
+  name: string;
+  position: number | null;
+  positionLabel: string | null;
+}>;
+
+export type WorkEditionDetails = Readonly<{
+  id: string;
+  editionTitle: string | null;
+  subtitle: string | null;
+  isbn10: string | null;
+  isbn13: string | null;
+  publicationDate: string | null;
+  publicationDatePrecision: string | null;
+  languageCode: string | null;
+  format: string;
+  pageCount: number | null;
+  audioDurationMinutes: number | null;
+  coverUrl: string | null;
+  coverStorageKey: string | null;
+  publisher: PublisherSummary | null;
+}>;
+
+export type WorkDetails = Readonly<{
+  work: WorkSummary & Readonly<{ description: string | null }>;
+  authors: WorkAuthorDetails[];
+  genres: WorkGenreDetails[];
+  series: WorkSeriesDetails[];
+  editions: WorkEditionDetails[];
+}>;
+
 export type CatalogErrorKind =
   | "validation"
   | "unauthenticated"

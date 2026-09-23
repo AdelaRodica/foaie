@@ -1,0 +1,31 @@
+.form { display: grid; gap: var(--space-8); }
+.intro, .help { margin: 0; color: var(--color-text-muted); }
+.section, .selector { display: grid; min-width: 0; gap: var(--space-4); margin: 0; padding: var(--space-5); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); }
+.section > legend { padding-inline: var(--space-2); font-family: var(--font-family-brand); font-size: var(--font-size-heading-3); font-weight: var(--font-weight-semibold); }
+.selector { padding: var(--space-4); background: var(--color-surface-subtle); }
+.selector legend { padding-inline: var(--space-1); font-weight: var(--font-weight-semibold); }
+.selector legend span { color: var(--color-text-muted); font-weight: var(--font-weight-regular); }
+.field, .inlineForm { display: grid; gap: var(--space-2); min-width: 0; }
+.field label { font-weight: var(--font-weight-semibold); }
+.field input, .field select, .field textarea, .searchRow input { box-sizing: border-box; width: 100%; min-width: 0; min-height: var(--control-min-size); padding: var(--space-3); border: var(--border-width) solid var(--color-border-strong); border-radius: var(--radius-field); background: var(--color-canvas); color: var(--color-text); font: inherit; }
+.field textarea { resize: vertical; }
+.fieldGrid { display: grid; gap: var(--space-4); }
+.searchRow { display: grid; gap: var(--space-2); }
+.searchRow button, .selector button, .submitArea button { min-height: var(--control-min-size); padding: var(--space-2) var(--space-4); border: var(--border-width) solid var(--color-action); border-radius: var(--radius-field); background: var(--color-action); color: var(--color-on-action); cursor: pointer; font: inherit; font-weight: var(--font-weight-semibold); }
+.searchRow button:disabled, .selector button:disabled, .submitArea button:disabled { cursor: not-allowed; opacity: 0.55; }
+.textButton { justify-self: start; background: transparent !important; color: var(--color-action) !important; }
+.options, .selected { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.options li, .selected li, .selectionLine, .genreRow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-field); background: var(--color-canvas); }
+.buttonGroup { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.seriesItem { display: grid !important; align-items: stretch !important; }
+.genreList { display: grid; gap: var(--space-2); }
+.genreRow label { min-height: var(--control-min-size); display: flex; align-items: center; gap: var(--space-2); }
+.advanced { border-top: var(--border-width) solid var(--color-border); padding-top: var(--space-4); }
+.advanced summary { min-height: var(--control-min-size); cursor: pointer; font-weight: var(--font-weight-semibold); }
+.advanced[open] summary { margin-bottom: var(--space-4); }
+.inlineForm { padding: var(--space-4); border-left: var(--space-1) solid var(--color-action); }
+.error { margin: 0; color: var(--color-danger); }
+.submitArea { display: grid; gap: var(--space-2); justify-items: start; }
+.primaryButton { min-width: min(100%, 14rem); }
+.fullWidth { grid-column: 1 / -1; }
+@media (min-width: 37.5rem) { .fieldGrid, .searchRow { grid-template-columns: repeat(2, minmax(0, 1fr)); } .searchRow { grid-template-columns: minmax(0, 1fr) auto; } }

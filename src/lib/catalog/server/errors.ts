@@ -5,6 +5,11 @@ import { CatalogError } from "../errors";
 type ReadError = Readonly<{ code?: string | null }>;
 
 const mutationErrorKinds = {
+  "22003": "validation",
+  "22007": "validation",
+  "22008": "validation",
+  "22023": "validation",
+  "22P02": "validation",
   "23502": "constraint",
   "23503": "constraint",
   "23505": "conflict",

@@ -424,7 +424,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_catalog_entry: {
+        Args: {
+          p_author_relations: Json
+          p_edition: Json
+          p_genre_relations: Json
+          p_series_relations: Json
+          p_work: Json
+        }
+        Returns: {
+          edition_id: string
+          work_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

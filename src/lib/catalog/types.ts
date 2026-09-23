@@ -98,6 +98,8 @@ export type WorkDetails = Readonly<{
   editions: WorkEditionDetails[];
 }>;
 
+export type MutationIdResult = Readonly<{ id: string }>;
+
 export type CatalogErrorKind =
   | "validation"
   | "unauthenticated"

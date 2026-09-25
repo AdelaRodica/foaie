@@ -8,6 +8,7 @@ import {
   mapEditionSearchResult,
   mapPublisherSummary,
   mapSeriesSummary,
+  mapWorkCapabilities,
   mapWorkDetails,
   mapWorkSummary,
   normalizeIsbnSearch,
@@ -21,9 +22,13 @@ import type {
   SearchOptions,
   SeriesSummary,
   WorkDetails,
+  WorkDetailsForViewer,
   WorkSummary,
 } from "../types";
-import { createAuthenticatedCatalogClient } from "./auth";
+import {
+  createAuthenticatedCatalogClient,
+  createAuthenticatedCatalogReadContext,
+} from "./auth";
 import { mapCatalogReadError } from "./errors";
 
 const uuidSchema = z.string().uuid();
@@ -61,6 +66,36 @@ const WORK_DETAILS_COLUMNS = `
     audio_duration_minutes,
     cover_url,
     cover_storage_key,
+    publisher:publishers(id,name)
+  )
+`;
+
+const WORK_DETAILS_FOR_VIEWER_COLUMNS = `
+  id,
+  title,
+  original_title,
+  description,
+  original_publication_year,
+  original_language_code,
+  created_by_profile_id,
+  work_authors(position,author:authors(id,name,sort_name)),
+  work_genres(is_primary,genre:genres(id,name,slug)),
+  work_series(position,position_label,series:series(id,name)),
+  editions(
+    id,
+    edition_title,
+    subtitle,
+    isbn10,
+    isbn13,
+    publication_date,
+    publication_date_precision,
+    language_code,
+    format,
+    page_count,
+    audio_duration_minutes,
+    cover_url,
+    cover_storage_key,
+    created_by_profile_id,
     publisher:publishers(id,name)
   )
 `;
@@ -201,6 +236,37 @@ export async function getWorkDetails(workId: string): Promise<WorkDetails> {
   if (error) throw mapCatalogReadError(error, "getWorkDetails");
   if (!data) throw new CatalogError("not_found", { operation: "getWorkDetails" });
   return mapWorkDetails(data);
+}
+
+export async function getWorkDetailsForViewer(
+  workId: string,
+): Promise<WorkDetailsForViewer> {
+  const validId = parseId(workId, "getWorkDetailsForViewer");
+  const { supabase, userId } = await createAuthenticatedCatalogReadContext();
+  const { data, error } = await supabase
+    .from("works")
+    .select(WORK_DETAILS_FOR_VIEWER_COLUMNS)
+    .eq("id", validId)
+    .maybeSingle();
+
+  if (error) throw mapCatalogReadError(error, "getWorkDetailsForViewer");
+  if (!data) {
+    throw new CatalogError("not_found", {
+      operation: "getWorkDetailsForViewer",
+    });
+  }
+
+  return {
+    details: mapWorkDetails(data),
+    capabilities: mapWorkCapabilities({
+      currentUserId: userId,
+      workCreatorId: data.created_by_profile_id,
+      editions: data.editions.map((edition) => ({
+        id: edition.id,
+        creatorId: edition.created_by_profile_id,
+      })),
+    }),
+  };
 }
 
 export async function findEditionByIsbn(query: string): Promise<EditionSearchResult | null> {

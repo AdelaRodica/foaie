@@ -3,7 +3,7 @@ import "server-only";
 import { CatalogError } from "../errors";
 import { createReadOnlyClient, createWritableClient } from "../../supabase/server";
 
-export async function createAuthenticatedCatalogClient() {
+export async function createAuthenticatedCatalogReadContext() {
   const supabase = await createReadOnlyClient();
   const { data, error } = await supabase.auth.getClaims();
 
@@ -14,6 +14,11 @@ export async function createAuthenticatedCatalogClient() {
     });
   }
 
+  return { supabase, userId: data.claims.sub };
+}
+
+export async function createAuthenticatedCatalogClient() {
+  const { supabase } = await createAuthenticatedCatalogReadContext();
   return supabase;
 }
 

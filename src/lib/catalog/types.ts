@@ -109,6 +109,22 @@ export type WorkDetails = Readonly<{
   editions: WorkEditionDetails[];
 }>;
 
+export type EditionCapabilities = Readonly<{
+  canEditEdition: boolean;
+  canDeleteEdition: boolean;
+}>;
+
+export type WorkCapabilities = Readonly<{
+  canEditWork: boolean;
+  canDeleteWork: boolean;
+  editions: Readonly<Record<string, EditionCapabilities>>;
+}>;
+
+export type WorkDetailsForViewer = Readonly<{
+  details: WorkDetails;
+  capabilities: WorkCapabilities;
+}>;
+
 export type MutationIdResult = Readonly<{ id: string }>;
 
 export type CatalogErrorKind =

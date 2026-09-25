@@ -3,6 +3,7 @@ import type {
   EditionSearchResult,
   PublisherSummary,
   SeriesSummary,
+  WorkCapabilities,
   WorkDetails,
   WorkSummary,
 } from "./types";
@@ -72,6 +73,15 @@ export type WorkDetailsRow = WorkSummaryRow & Readonly<{
   }>>;
 }>;
 
+type WorkCapabilitiesInput = Readonly<{
+  currentUserId: string;
+  workCreatorId: string | null;
+  editions: ReadonlyArray<Readonly<{
+    id: string;
+    creatorId: string | null;
+  }>>;
+}>;
+
 const compareText = (left: string, right: string) =>
   left < right ? -1 : left > right ? 1 : 0;
 
@@ -122,6 +132,28 @@ export function normalizeIsbnSearch(value: string) {
   if (/^\d{9}[\dX]$/.test(normalized)) return { field: "isbn10" as const, value: normalized };
   if (/^\d{13}$/.test(normalized)) return { field: "isbn13" as const, value: normalized };
   return null;
+}
+
+export function mapWorkCapabilities({
+  currentUserId,
+  workCreatorId,
+  editions,
+}: WorkCapabilitiesInput): WorkCapabilities {
+  const canEditWork = workCreatorId === currentUserId;
+
+  return {
+    canEditWork,
+    canDeleteWork: canEditWork && editions.length === 0,
+    editions: Object.fromEntries(
+      editions.map(({ id, creatorId }) => {
+        const isCreator = creatorId === currentUserId;
+        return [id, {
+          canEditEdition: isCreator,
+          canDeleteEdition: isCreator,
+        }];
+      }),
+    ),
+  };
 }
 
 export function mapWorkDetails(row: WorkDetailsRow): WorkDetails {

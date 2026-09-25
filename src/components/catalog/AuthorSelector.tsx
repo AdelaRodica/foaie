@@ -8,7 +8,7 @@ import type { AuthorSummary } from "@/lib/catalog/types";
 
 import styles from "./catalog-form.module.css";
 
-export function AuthorSelector() {
+export function AuthorSelector({ errors }: Readonly<{ errors?: readonly string[] }>) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<AuthorSummary[]>([]);
   const [searchedQuery, setSearchedQuery] = useState("");
@@ -50,9 +50,10 @@ export function AuthorSelector() {
   const reviewedMatches = normalizeSearchQuery(searchedQuery) === normalizeSearchQuery(query) && query.trim().length >= 2;
 
   return (
-    <fieldset className={styles.selector}>
+    <fieldset id="authors-section" tabIndex={-1} className={styles.selector} aria-describedby={errors?.length ? "author-relations-error" : undefined}>
       <legend>Autores <span>(recomendado)</span></legend>
       <p className={styles.help}>Añade un autor si lo conoces. También puedes completar este dato más adelante.</p>
+      {errors?.length ? <p id="author-relations-error" className={styles.fieldError}>{errors.join(" ")}</p> : null}
       <div className={styles.searchRow}><div className={styles.field}><label htmlFor="author-search">Buscar autores</label><input id="author-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nombre del autor" /></div><button type="button" onClick={search} disabled={pending || query.trim().length < 2}>Buscar</button></div>
       {message ? <p className={styles.error}>{message}</p> : null}
       {results.length > 0 ? <ul className={styles.options}>{results.map((author) => <li key={author.id}><span>{author.name}</span><button type="button" onClick={() => add(author)} disabled={selected.some(({ id }) => id === author.id)}>Usar existente</button></li>)}</ul> : null}

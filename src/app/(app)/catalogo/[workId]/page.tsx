@@ -6,8 +6,12 @@ import { getWorkDetails } from "@/lib/catalog/server/queries";
 import type { WorkDetails } from "@/lib/catalog/types";
 
 import styles from "../../shared-page.module.css";
+import catalogStyles from "@/components/catalog/catalog.module.css";
 
-type CatalogWorkPageProps = Readonly<{ params: Promise<{ workId: string }> }>;
+type CatalogWorkPageProps = Readonly<{
+  params: Promise<{ workId: string }>;
+  searchParams: Promise<{ creado?: string | string[] }>;
+}>;
 
 async function loadWorkDetails(workId: string): Promise<WorkDetails | null> {
   try {
@@ -17,8 +21,9 @@ async function loadWorkDetails(workId: string): Promise<WorkDetails | null> {
   }
 }
 
-export default async function CatalogWorkPage({ params }: CatalogWorkPageProps) {
+export default async function CatalogWorkPage({ params, searchParams }: CatalogWorkPageProps) {
   const { workId } = await params;
+  const { creado } = await searchParams;
   const details = await loadWorkDetails(workId);
 
   if (details) {
@@ -30,6 +35,12 @@ export default async function CatalogWorkPage({ params }: CatalogWorkPageProps) 
           description="Consulta la obra y las ediciones registradas en el catálogo compartido."
           action={<ButtonLink href="/biblioteca/nuevo" variant="secondary">Volver a buscar</ButtonLink>}
         />
+        {creado === "1" ? (
+          <div className={catalogStyles.successNotice} role="status">
+            <strong>La obra y su edición se han guardado en el catálogo.</strong>
+            <span>Añadirla a tu Biblioteca estará disponible en la siguiente etapa.</span>
+          </div>
+        ) : null}
         <CatalogWorkDetails details={details} />
       </div>
     );

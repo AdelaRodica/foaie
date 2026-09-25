@@ -24,8 +24,15 @@
 .advanced summary { min-height: var(--control-min-size); cursor: pointer; font-weight: var(--font-weight-semibold); }
 .advanced[open] summary { margin-bottom: var(--space-4); }
 .inlineForm { padding: var(--space-4); border-left: var(--space-1) solid var(--color-action); }
-.error { margin: 0; color: var(--color-danger); }
+.error, .fieldError { margin: 0; color: var(--color-danger); overflow-wrap: anywhere; }
+.errorSummary { display: grid; gap: var(--space-3); max-width: var(--text-max-width); padding: var(--space-4); border: var(--border-width) solid var(--color-danger); border-radius: var(--radius-card); background: var(--color-surface-subtle); overflow-wrap: anywhere; }
+.errorSummary h2, .errorSummary ul { margin: 0; }
+.errorSummary h2 { font-size: var(--font-size-heading-3); }
+.errorSummary ul { display: grid; gap: var(--space-2); padding-inline-start: var(--space-5); }
+.errorSummary:focus, .selector:focus { outline: var(--border-width-focus) solid var(--color-focus); outline-offset: var(--space-1); }
+.field [aria-invalid="true"] { border-color: var(--color-danger); }
 .submitArea { display: grid; gap: var(--space-2); justify-items: start; }
-.primaryButton { min-width: min(100%, 14rem); }
+.primaryButton { min-width: min(100%, 14rem); min-height: var(--control-min-size); }
 .fullWidth { grid-column: 1 / -1; }
+@media (max-width: 37.499rem) { .primaryButton { width: 100%; } }
 @media (min-width: 37.5rem) { .fieldGrid, .searchRow { grid-template-columns: repeat(2, minmax(0, 1fr)); } .searchRow { grid-template-columns: minmax(0, 1fr) auto; } }

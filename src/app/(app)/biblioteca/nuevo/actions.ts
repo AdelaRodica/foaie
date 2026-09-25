@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { CatalogError } from "@/lib/catalog/errors";
@@ -173,7 +174,9 @@ export async function createCatalogEntryAction(
 
     if (!parsed.success) return validationFailure(zodFieldErrors(parsed.error));
     const input: CatalogEntryInput = parsed.data;
-    return { success: true, data: await createCatalogEntry(input) };
+    const result = await createCatalogEntry(input);
+    revalidatePath("/biblioteca/nuevo");
+    return { success: true, data: result };
   } catch (error) {
     if (error instanceof CatalogEntryValidationError) {
       return validationFailure({ form: [error.message] });

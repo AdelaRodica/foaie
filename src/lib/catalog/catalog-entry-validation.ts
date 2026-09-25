@@ -90,7 +90,7 @@ const authorRelationSchema = workAuthorInputSchema.omit({ workId: true });
 const genreRelationSchema = workGenreInputSchema.omit({ workId: true });
 const seriesRelationSchema = workSeriesInputSchema.omit({ workId: true });
 
-export const catalogEntryInputSchema = z.object({
+export const catalogWorkFieldsSchema = z.object({
   work: workInputSchema,
   authorRelations: z.array(authorRelationSchema).superRefine((relations, context) => {
     const authorIds = new Set<string>();
@@ -129,5 +129,8 @@ export const catalogEntryInputSchema = z.object({
       seriesIds.add(relation.seriesId);
     });
   }),
+}).strict();
+
+export const catalogEntryInputSchema = catalogWorkFieldsSchema.extend({
   edition: catalogEntryEditionInputSchema,
 }).strict();

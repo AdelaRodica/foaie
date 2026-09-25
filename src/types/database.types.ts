@@ -437,6 +437,18 @@ export type Database = {
           work_id: string
         }[]
       }
+      update_catalog_work: {
+        Args: {
+          p_author_relations: Json
+          p_genre_relations: Json
+          p_series_relations: Json
+          p_work: Json
+          p_work_id: string
+        }
+        Returns: {
+          work_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

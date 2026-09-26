@@ -135,7 +135,6 @@ export function validateCatalogEditionUpdate(
       pageCount: values.pageCount,
       audioDurationMinutes: values.audioDurationMinutes,
       coverUrl: values.coverUrl,
-      coverStorageKey: null,
     },
   });
 

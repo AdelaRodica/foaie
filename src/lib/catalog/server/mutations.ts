@@ -3,6 +3,7 @@ import "server-only";
 import { z } from "zod";
 
 import { CatalogError, catalogValidationError } from "../errors";
+import { buildEditionUpdatePayload } from "../edition-update-payload";
 import {
   authorInputSchema,
   editionCreateInputSchema,
@@ -181,24 +182,6 @@ export async function deleteSeries(seriesId: string): Promise<void> {
   throw new CatalogError(existence.data ? "permission" : "not_found", { operation: "deleteSeries" });
 }
 
-function editionUpdatePayload(parsed: EditionUpdateInput) {
-  return {
-    publisher_id: parsed.publisherId,
-    edition_title: parsed.editionTitle,
-    subtitle: parsed.subtitle,
-    isbn10: parsed.isbn10,
-    isbn13: parsed.isbn13,
-    publication_date: parsed.publicationDate,
-    publication_date_precision: parsed.publicationDatePrecision,
-    language_code: parsed.languageCode,
-    format: parsed.format,
-    page_count: parsed.pageCount,
-    audio_duration_minutes: parsed.audioDurationMinutes,
-    cover_url: parsed.coverUrl,
-    cover_storage_key: parsed.coverStorageKey,
-  };
-}
-
 export async function createEdition(input: EditionCreateInput): Promise<MutationIdResult> {
   const parsed = parseInput(editionCreateInputSchema, input, "createEdition");
   const supabase = await createAuthenticatedWritableCatalogClient();
@@ -226,7 +209,7 @@ export async function updateEdition(editionId: string, input: EditionUpdateInput
   const id = parseId(editionId, "updateEdition");
   const parsed = parseInput(editionUpdateInputSchema, input, "updateEdition");
   const supabase = await createAuthenticatedWritableCatalogClient();
-  const { data, error } = await supabase.from("editions").update(editionUpdatePayload(parsed)).eq("id", id).select("id").maybeSingle();
+  const { data, error } = await supabase.from("editions").update(buildEditionUpdatePayload(parsed)).eq("id", id).select("id").maybeSingle();
   if (error) throw mapCatalogMutationError(error, "updateEdition");
   if (data) return data;
   const existence = await supabase.from("editions").select("id").eq("id", id).maybeSingle();

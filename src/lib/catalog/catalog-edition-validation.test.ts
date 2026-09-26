@@ -4,6 +4,7 @@ import {
   catalogEditionUpdateInputSchema,
   validateCatalogEditionUpdate,
 } from "./catalog-edition-validation";
+import { editionUpdateInputSchema } from "./schemas";
 
 const workId = "11111111-1111-4111-8111-111111111111";
 const editionId = "22222222-2222-4222-8222-222222222222";
@@ -51,9 +52,9 @@ describe("validateCatalogEditionUpdate", () => {
           pageCount: null,
           audioDurationMinutes: null,
           coverUrl: null,
-          coverStorageKey: null,
         },
       });
+      expect(result.data.edition).not.toHaveProperty("coverStorageKey");
     }
   });
 
@@ -86,6 +87,36 @@ describe("validateCatalogEditionUpdate", () => {
     const selected = validate({ publisherId });
     expect(empty.success && empty.data.edition.publisherId).toBeNull();
     expect(selected.success && selected.data.edition.publisherId).toBe(publisherId);
+  });
+
+  it("preserves omitted, null, and valued cover properties", () => {
+    const omitted = editionUpdateInputSchema.parse({ editionTitle: "Edición" });
+    const nullUrl = editionUpdateInputSchema.parse({ coverUrl: null });
+    const url = editionUpdateInputSchema.parse({
+      coverUrl: "https://example.com/cover.jpg",
+    });
+    const nullStorage = editionUpdateInputSchema.parse({ coverStorageKey: null });
+    const storage = editionUpdateInputSchema.parse({
+      coverStorageKey: "covers/edition.jpg",
+    });
+
+    expect(omitted).not.toHaveProperty("coverUrl");
+    expect(omitted).not.toHaveProperty("coverStorageKey");
+    expect(nullUrl).toHaveProperty("coverUrl", null);
+    expect(nullUrl).not.toHaveProperty("coverStorageKey");
+    expect(url).toHaveProperty("coverUrl", "https://example.com/cover.jpg");
+    expect(url).not.toHaveProperty("coverStorageKey");
+    expect(nullStorage).toHaveProperty("coverStorageKey", null);
+    expect(nullStorage).not.toHaveProperty("coverUrl");
+    expect(storage).toHaveProperty("coverStorageKey", "covers/edition.jpg");
+    expect(storage).not.toHaveProperty("coverUrl");
+  });
+
+  it("rejects two non-null cover sources", () => {
+    expect(editionUpdateInputSchema.safeParse({
+      coverUrl: "https://example.com/cover.jpg",
+      coverStorageKey: "covers/edition.jpg",
+    }).success).toBe(false);
   });
 
   it.each([

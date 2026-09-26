@@ -6,11 +6,14 @@ import { normalizeSearchQuery } from "@/lib/catalog/search";
 import type { PublisherSummary } from "@/lib/catalog/types";
 import styles from "./catalog-form.module.css";
 
-export function PublisherSelector({ errors }: Readonly<{ errors?: readonly string[] }>) {
+export function PublisherSelector({ errors, initialSelection = null }: Readonly<{
+  errors?: readonly string[];
+  initialSelection?: PublisherSummary | null;
+}>) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PublisherSummary[]>([]);
   const [searchedQuery, setSearchedQuery] = useState("");
-  const [selected, setSelected] = useState<PublisherSummary | null>(null);
+  const [selected, setSelected] = useState<PublisherSummary | null>(() => initialSelection);
   const [message, setMessage] = useState("");
   const [creating, setCreating] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -21,7 +24,7 @@ export function PublisherSelector({ errors }: Readonly<{ errors?: readonly strin
   const reviewed = normalizeSearchQuery(searchedQuery) === normalizeSearchQuery(query) && query.trim().length >= 2;
 
   return (
-    <fieldset id="publisher-section" tabIndex={-1} className={`${styles.selector} ${styles.fullWidth}`} aria-describedby={errors?.length ? "publisher-error" : undefined}>
+    <fieldset id="publisher-section" tabIndex={-1} className={`${styles.selector} ${styles.fullWidth}`} aria-invalid={Boolean(errors?.length)} aria-describedby={errors?.length ? "publisher-error" : undefined}>
       <legend>Editorial <span>(opcional)</span></legend>
       {errors?.length ? <p id="publisher-error" className={styles.fieldError}>{errors.join(" ")}</p> : null}
       {selected ? <div className={styles.selectionLine}><span>{selected.name}</span><button type="button" onClick={() => setSelected(null)}>Quitar</button></div> : <><div className={styles.searchRow}><div className={styles.field}><label htmlFor="publisher-search">Buscar editorial</label><input id="publisher-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nombre de la editorial" /></div><button type="button" onClick={search} disabled={pending || query.trim().length < 2}>Buscar</button></div>{results.length > 0 ? <ul className={styles.options}>{results.map((item) => <li key={item.id}><span>{item.name}</span><button type="button" onClick={() => setSelected(item)}>Usar existente</button></li>)}</ul> : null}<button type="button" className={styles.textButton} onClick={() => setCreating((value) => !value)}>Crear editorial</button></>}

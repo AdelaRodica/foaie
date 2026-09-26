@@ -14,6 +14,8 @@ type CatalogWorkPageProps = Readonly<{
     creado?: string | string[];
     actualizado?: string | string[];
     editar?: string | string[];
+    edicionActualizada?: string | string[];
+    editarEdicion?: string | string[];
   }>;
 }>;
 
@@ -27,7 +29,7 @@ async function loadWorkDetails(workId: string): Promise<WorkDetailsForViewer | n
 
 export default async function CatalogWorkPage({ params, searchParams }: CatalogWorkPageProps) {
   const { workId } = await params;
-  const { creado, actualizado, editar } = await searchParams;
+  const { creado, actualizado, editar, edicionActualizada, editarEdicion } = await searchParams;
   const viewer = await loadWorkDetails(workId);
 
   if (viewer) {
@@ -58,12 +60,27 @@ export default async function CatalogWorkPage({ params, searchParams }: CatalogW
             <strong>Los cambios de la obra se han guardado.</strong>
           </div>
         ) : null}
+        {edicionActualizada === "1" ? (
+          <div className={catalogStyles.successNotice} role="status">
+            <strong>La edición se ha actualizado correctamente.</strong>
+          </div>
+        ) : null}
         {editar === "no-permitido" ? (
           <div className={catalogStyles.accessNotice} role="status">
             <strong>Esta obra no está disponible para edición desde tu cuenta.</strong>
           </div>
         ) : null}
-        <CatalogWorkDetails details={details} />
+        {editarEdicion === "no-permitido" ? (
+          <div className={catalogStyles.accessNotice} role="status">
+            <strong>Esta edición no está disponible para edición desde tu cuenta.</strong>
+          </div>
+        ) : null}
+        <CatalogWorkDetails
+          details={details}
+          editableEditionIds={details.editions
+            .filter((edition) => capabilities.editions[edition.id]?.canEditEdition)
+            .map((edition) => edition.id)}
+        />
       </div>
     );
   }

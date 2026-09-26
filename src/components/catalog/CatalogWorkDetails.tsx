@@ -4,8 +4,12 @@ import type { WorkDetails } from "@/lib/catalog/types";
 import { EditionCard } from "./EditionCard";
 import styles from "./catalog.module.css";
 
-export function CatalogWorkDetails({ details }: Readonly<{ details: WorkDetails }>) {
+export function CatalogWorkDetails({ details, editableEditionIds = [] }: Readonly<{
+  details: WorkDetails;
+  editableEditionIds?: readonly string[];
+}>) {
   const { work, authors, genres, series, editions } = details;
+  const editableEditions = new Set(editableEditionIds);
 
   return (
     <div className={styles.details}>
@@ -31,7 +35,7 @@ export function CatalogWorkDetails({ details }: Readonly<{ details: WorkDetails 
           <p className={styles.muted}>Formatos y publicaciones registradas en el catálogo de Foaie.</p>
         </div>
         {editions.length > 0 ? (
-          <div className={styles.editionGrid}>{editions.map((edition) => <EditionCard key={edition.id} edition={edition} />)}</div>
+          <div className={styles.editionGrid}>{editions.map((edition) => <EditionCard key={edition.id} edition={edition} workId={work.id} canEdit={editableEditions.has(edition.id)} />)}</div>
         ) : <p className={styles.emptyInline}>Todavía no hay ediciones registradas para esta obra.</p>}
       </section>
     </div>

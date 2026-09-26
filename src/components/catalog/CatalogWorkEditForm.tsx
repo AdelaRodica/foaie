@@ -14,6 +14,11 @@ import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { WorkFormSection } from "./WorkFormSection";
 import styles from "./catalog-form.module.css";
 
+type CatalogWorkEditDetails = Pick<
+  WorkDetails,
+  "work" | "authors" | "genres" | "series"
+>;
+
 type FailedResult = Extract<
   Awaited<ReturnType<typeof updateCatalogWorkAction>>,
   { success: false }
@@ -31,7 +36,7 @@ const focusTargets: Record<string, string> = {
 };
 
 type CatalogWorkEditFormProps = Readonly<{
-  details: WorkDetails;
+  details: CatalogWorkEditDetails;
   genres: GenreOption[];
   canDeleteWork: boolean;
 }>;

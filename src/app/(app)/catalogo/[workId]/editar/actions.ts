@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import {
   CatalogEntryValidationError,
@@ -12,6 +13,7 @@ import {
   type CatalogWorkFieldErrors,
 } from "@/lib/catalog/catalog-work-validation";
 import { CatalogError } from "@/lib/catalog/errors";
+import { deleteWork } from "@/lib/catalog/server/mutations";
 import {
   updateCatalogWork,
   type CatalogWorkUpdateResult,
@@ -26,6 +28,12 @@ type UpdateCatalogWorkActionResult =
       message: string;
       fieldErrors?: CatalogWorkFieldErrors;
     }>;
+
+type DeleteCatalogWorkActionResult =
+  | Readonly<{ success: true; data: Readonly<{ workId: string }> }>
+  | Readonly<{ success: false; kind: CatalogErrorKind; message: string }>;
+
+const uuidSchema = z.string().uuid();
 
 function readString(formData: FormData, name: string) {
   const value = formData.get(name);
@@ -110,6 +118,34 @@ export async function updateCatalogWorkAction(
   } catch (error) {
     if (error instanceof CatalogEntryValidationError) {
       return validationFailure({ form: [error.message] });
+    }
+    return publicFailure(error);
+  }
+}
+
+export async function deleteCatalogWorkAction(
+  workId: string,
+): Promise<DeleteCatalogWorkActionResult> {
+  const parsedId = uuidSchema.safeParse(workId);
+  if (!parsedId.success) {
+    return {
+      success: false,
+      kind: "validation",
+      message: "El identificador de la obra no es válido.",
+    };
+  }
+
+  try {
+    await deleteWork(parsedId.data);
+    revalidatePath("/biblioteca/nuevo");
+    return { success: true, data: { workId: parsedId.data } };
+  } catch (error) {
+    if (error instanceof CatalogError && error.kind === "constraint") {
+      return {
+        success: false,
+        kind: "constraint",
+        message: "No puede eliminarse la obra mientras conserve ediciones.",
+      };
     }
     return publicFailure(error);
   }

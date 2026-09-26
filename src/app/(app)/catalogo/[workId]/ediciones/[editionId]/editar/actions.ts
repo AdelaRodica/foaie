@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import {
   type CatalogEditionFieldErrors,
@@ -8,7 +9,7 @@ import {
 } from "@/lib/catalog/catalog-edition-validation";
 import { CatalogEntryValidationError } from "@/lib/catalog/catalog-entry-validation";
 import { CatalogError } from "@/lib/catalog/errors";
-import { updateEdition } from "@/lib/catalog/server/mutations";
+import { deleteEdition, updateEdition } from "@/lib/catalog/server/mutations";
 import { getEditionWorkId } from "@/lib/catalog/server/queries";
 import type { CatalogErrorKind } from "@/lib/catalog/types";
 
@@ -23,6 +24,19 @@ type UpdateCatalogEditionActionResult =
       message: string;
       fieldErrors?: CatalogEditionFieldErrors;
     }>;
+
+type DeleteCatalogEditionActionResult =
+  | Readonly<{
+      success: true;
+      data: Readonly<{ workId: string; editionId: string }>;
+    }>
+  | Readonly<{
+      success: false;
+      kind: CatalogErrorKind;
+      message: string;
+    }>;
+
+const uuidSchema = z.string().uuid();
 
 function readString(formData: FormData, name: string) {
   const value = formData.get(name);
@@ -104,6 +118,47 @@ export async function updateCatalogEditionAction(
   } catch (error) {
     if (error instanceof CatalogEntryValidationError) {
       return validationFailure({ form: [error.message] });
+    }
+    return publicFailure(error);
+  }
+}
+
+export async function deleteCatalogEditionAction(
+  workId: string,
+  editionId: string,
+): Promise<DeleteCatalogEditionActionResult> {
+  const parsedWorkId = uuidSchema.safeParse(workId);
+  const parsedEditionId = uuidSchema.safeParse(editionId);
+  if (!parsedWorkId.success || !parsedEditionId.success) {
+    return {
+      success: false,
+      kind: "validation",
+      message: "Los identificadores de la edición no son válidos.",
+    };
+  }
+
+  try {
+    const actualWorkId = await getEditionWorkId(parsedEditionId.data);
+    if (actualWorkId !== parsedWorkId.data) {
+      return publicFailure(new CatalogError("not_found", {
+        operation: "deleteCatalogEditionAction.relation",
+      }));
+    }
+
+    await deleteEdition(parsedEditionId.data);
+    revalidatePath(`/catalogo/${parsedWorkId.data}`);
+    revalidatePath("/biblioteca/nuevo");
+    return {
+      success: true,
+      data: { workId: parsedWorkId.data, editionId: parsedEditionId.data },
+    };
+  } catch (error) {
+    if (error instanceof CatalogError && error.kind === "constraint") {
+      return {
+        success: false,
+        kind: "constraint",
+        message: "Esta edición está en uso y no puede eliminarse.",
+      };
     }
     return publicFailure(error);
   }

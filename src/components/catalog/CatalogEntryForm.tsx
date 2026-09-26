@@ -93,7 +93,7 @@ export function CatalogEntryForm({ genres, initialTitle }: Readonly<{ genres: Ge
           <ul>{summaryErrors.map((message) => <li key={message}>{message}</li>)}</ul>
         </div>
       ) : null}
-      <WorkFormSection genres={genres} initialTitle={initialTitle} fieldErrors={failure?.fieldErrors} />
+      <WorkFormSection genres={genres} initialValues={{ title: initialTitle }} fieldErrors={failure?.fieldErrors} />
       <EditionFormSection fieldErrors={failure?.fieldErrors} />
       <div className={styles.submitArea}>
         <button className={styles.primaryButton} type="submit" disabled={isPending}>

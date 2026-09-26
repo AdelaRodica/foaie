@@ -30,7 +30,11 @@ const uuid = z.string().uuid();
 
 export const workInputSchema = z
   .object({
-    title: z.string().trim().min(1).max(300),
+    title: z
+      .string()
+      .trim()
+      .min(1, "Introduce un título para la obra.")
+      .max(300),
     originalTitle: nullableTrimmedString(300),
     description: nullableTrimmedString(),
     originalPublicationYear: nullableInteger(

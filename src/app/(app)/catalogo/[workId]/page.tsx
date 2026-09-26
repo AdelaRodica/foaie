@@ -2,20 +2,24 @@ import { CatalogWorkDetails } from "@/components/catalog/CatalogWorkDetails";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { getWorkDetails } from "@/lib/catalog/server/queries";
-import type { WorkDetails } from "@/lib/catalog/types";
+import { getWorkDetailsForViewer } from "@/lib/catalog/server/queries";
+import type { WorkDetailsForViewer } from "@/lib/catalog/types";
 
 import styles from "../../shared-page.module.css";
 import catalogStyles from "@/components/catalog/catalog.module.css";
 
 type CatalogWorkPageProps = Readonly<{
   params: Promise<{ workId: string }>;
-  searchParams: Promise<{ creado?: string | string[] }>;
+  searchParams: Promise<{
+    creado?: string | string[];
+    actualizado?: string | string[];
+    editar?: string | string[];
+  }>;
 }>;
 
-async function loadWorkDetails(workId: string): Promise<WorkDetails | null> {
+async function loadWorkDetails(workId: string): Promise<WorkDetailsForViewer | null> {
   try {
-    return await getWorkDetails(workId);
+    return await getWorkDetailsForViewer(workId);
   } catch {
     return null;
   }
@@ -23,22 +27,40 @@ async function loadWorkDetails(workId: string): Promise<WorkDetails | null> {
 
 export default async function CatalogWorkPage({ params, searchParams }: CatalogWorkPageProps) {
   const { workId } = await params;
-  const { creado } = await searchParams;
-  const details = await loadWorkDetails(workId);
+  const { creado, actualizado, editar } = await searchParams;
+  const viewer = await loadWorkDetails(workId);
 
-  if (details) {
+  if (viewer) {
+    const { details, capabilities } = viewer;
     return (
       <div className={styles.page}>
         <PageHeader
           eyebrow="Catálogo de Foaie"
           title={details.work.title}
           description="Consulta la obra y las ediciones registradas en el catálogo compartido."
-          action={<ButtonLink href="/biblioteca/nuevo" variant="secondary">Volver a buscar</ButtonLink>}
+          action={(
+            <div className={catalogStyles.headerActions}>
+              {capabilities.canEditWork ? (
+                <ButtonLink href={`/catalogo/${workId}/editar`}>Editar obra</ButtonLink>
+              ) : null}
+              <ButtonLink href="/biblioteca/nuevo" variant="secondary">Volver a buscar</ButtonLink>
+            </div>
+          )}
         />
         {creado === "1" ? (
           <div className={catalogStyles.successNotice} role="status">
             <strong>La obra y su edición se han guardado en el catálogo.</strong>
             <span>Añadirla a tu Biblioteca estará disponible en la siguiente etapa.</span>
+          </div>
+        ) : null}
+        {actualizado === "1" ? (
+          <div className={catalogStyles.successNotice} role="status">
+            <strong>Los cambios de la obra se han guardado.</strong>
+          </div>
+        ) : null}
+        {editar === "no-permitido" ? (
+          <div className={catalogStyles.accessNotice} role="status">
+            <strong>Esta obra no está disponible para edición desde tu cuenta.</strong>
           </div>
         ) : null}
         <CatalogWorkDetails details={details} />

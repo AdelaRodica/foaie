@@ -217,6 +217,29 @@
   overflow-wrap: anywhere;
 }
 
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.accessNotice {
+  display: grid;
+  max-width: var(--text-max-width);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-subtle);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 37.499rem) {
+  .headerActions,
+  .headerActions > * {
+    width: 100%;
+  }
+}
+
 @media (min-width: 37.5rem) {
   .searchControls {
     grid-template-columns: minmax(0, 1fr) auto;

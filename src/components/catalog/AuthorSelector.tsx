@@ -4,15 +4,17 @@ import { useState, useTransition } from "react";
 
 import { createAuthorAction, searchAuthorsAction } from "@/app/(app)/biblioteca/nuevo/actions";
 import { normalizeSearchQuery } from "@/lib/catalog/search";
-import type { AuthorSummary } from "@/lib/catalog/types";
+import type { AuthorSummary, WorkAuthorDetails } from "@/lib/catalog/types";
 
 import styles from "./catalog-form.module.css";
 
-export function AuthorSelector({ errors }: Readonly<{ errors?: readonly string[] }>) {
+export function AuthorSelector({ initialSelection = [], errors }: Readonly<{ initialSelection?: WorkAuthorDetails[]; errors?: readonly string[] }>) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<AuthorSummary[]>([]);
   const [searchedQuery, setSearchedQuery] = useState("");
-  const [selected, setSelected] = useState<AuthorSummary[]>([]);
+  const [selected, setSelected] = useState<AuthorSummary[]>(() =>
+    initialSelection.map(({ id, name, sortName }) => ({ id, name, sortName })),
+  );
   const [message, setMessage] = useState("");
   const [creating, setCreating] = useState(false);
   const [sortName, setSortName] = useState("");
@@ -50,7 +52,7 @@ export function AuthorSelector({ errors }: Readonly<{ errors?: readonly string[]
   const reviewedMatches = normalizeSearchQuery(searchedQuery) === normalizeSearchQuery(query) && query.trim().length >= 2;
 
   return (
-    <fieldset id="authors-section" tabIndex={-1} className={styles.selector} aria-describedby={errors?.length ? "author-relations-error" : undefined}>
+    <fieldset id="authors-section" tabIndex={-1} className={styles.selector} aria-invalid={Boolean(errors?.length)} aria-describedby={errors?.length ? "author-relations-error" : undefined}>
       <legend>Autores <span>(recomendado)</span></legend>
       <p className={styles.help}>Añade un autor si lo conoces. También puedes completar este dato más adelante.</p>
       {errors?.length ? <p id="author-relations-error" className={styles.fieldError}>{errors.join(" ")}</p> : null}

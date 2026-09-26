@@ -49,7 +49,9 @@ describe("catalogWorkUpdateInputSchema", () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(catalogWorkFieldErrors(result.error)).toHaveProperty("work.title");
+      expect(catalogWorkFieldErrors(result.error)).toEqual({
+        "work.title": ["Introduce un título para la obra."],
+      });
     }
   });
 

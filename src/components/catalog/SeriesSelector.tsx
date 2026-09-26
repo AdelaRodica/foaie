@@ -3,16 +3,24 @@
 import { useState, useTransition } from "react";
 import { createSeriesAction, searchSeriesAction } from "@/app/(app)/biblioteca/nuevo/actions";
 import { normalizeSearchQuery } from "@/lib/catalog/search";
-import type { SeriesSummary } from "@/lib/catalog/types";
+import type { SeriesSummary, WorkSeriesDetails } from "@/lib/catalog/types";
 import styles from "./catalog-form.module.css";
 
 type SelectedSeries = SeriesSummary & { position: string; positionLabel: string };
 
-export function SeriesSelector({ errors }: Readonly<{ errors?: readonly string[] }>) {
+export function SeriesSelector({ initialSelection = [], errors }: Readonly<{ initialSelection?: WorkSeriesDetails[]; errors?: readonly string[] }>) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SeriesSummary[]>([]);
   const [searchedQuery, setSearchedQuery] = useState("");
-  const [selected, setSelected] = useState<SelectedSeries[]>([]);
+  const [selected, setSelected] = useState<SelectedSeries[]>(() =>
+    initialSelection.map((item) => ({
+      id: item.id,
+      name: item.name,
+      description: null,
+      position: item.position?.toString() ?? "",
+      positionLabel: item.positionLabel ?? "",
+    })),
+  );
   const [message, setMessage] = useState("");
   const [creating, setCreating] = useState(false);
   const [newDescription, setNewDescription] = useState("");
@@ -26,7 +34,7 @@ export function SeriesSelector({ errors }: Readonly<{ errors?: readonly string[]
   const reviewed = normalizeSearchQuery(searchedQuery) === normalizeSearchQuery(query) && query.trim().length >= 2;
 
   return (
-    <fieldset id="series-section" tabIndex={-1} className={styles.selector} aria-describedby={errors?.length ? "series-relations-error" : undefined}>
+    <fieldset id="series-section" tabIndex={-1} className={styles.selector} aria-invalid={Boolean(errors?.length)} aria-describedby={errors?.length ? "series-relations-error" : undefined}>
       <legend>Series o sagas <span>(opcional)</span></legend>
       {errors?.length ? <p id="series-relations-error" className={styles.fieldError}>{errors.join(" ")}</p> : null}
       <div className={styles.searchRow}><div className={styles.field}><label htmlFor="series-search">Buscar serie</label><input id="series-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nombre de la serie" /></div><button type="button" onClick={search} disabled={pending || query.trim().length < 2}>Buscar</button></div>

@@ -45,7 +45,11 @@ export default async function CatalogWorkEditPage({
         title={`Editar ${viewer.details.work.title}`}
         description="Actualiza la obra y sus relaciones. Las ediciones se gestionan por separado."
       />
-      <CatalogWorkEditForm details={viewer.details} genres={genres} />
+      <CatalogWorkEditForm
+        details={viewer.details}
+        genres={genres}
+        canDeleteWork={viewer.capabilities.canDeleteWork}
+      />
     </div>
   );
 }

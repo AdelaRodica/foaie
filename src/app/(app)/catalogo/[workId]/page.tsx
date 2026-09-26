@@ -16,6 +16,7 @@ type CatalogWorkPageProps = Readonly<{
     editar?: string | string[];
     edicionActualizada?: string | string[];
     editarEdicion?: string | string[];
+    edicionEliminada?: string | string[];
   }>;
 }>;
 
@@ -29,7 +30,7 @@ async function loadWorkDetails(workId: string): Promise<WorkDetailsForViewer | n
 
 export default async function CatalogWorkPage({ params, searchParams }: CatalogWorkPageProps) {
   const { workId } = await params;
-  const { creado, actualizado, editar, edicionActualizada, editarEdicion } = await searchParams;
+  const { creado, actualizado, editar, edicionActualizada, editarEdicion, edicionEliminada } = await searchParams;
   const viewer = await loadWorkDetails(workId);
 
   if (viewer) {
@@ -63,6 +64,11 @@ export default async function CatalogWorkPage({ params, searchParams }: CatalogW
         {edicionActualizada === "1" ? (
           <div className={catalogStyles.successNotice} role="status">
             <strong>La edición se ha actualizado correctamente.</strong>
+          </div>
+        ) : null}
+        {edicionEliminada === "1" ? (
+          <div className={catalogStyles.successNotice} role="status">
+            <strong>La edición se ha eliminado del catálogo.</strong>
           </div>
         ) : null}
         {editar === "no-permitido" ? (

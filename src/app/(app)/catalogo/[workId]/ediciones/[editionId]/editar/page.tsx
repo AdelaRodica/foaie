@@ -38,6 +38,7 @@ export default async function CatalogEditionEditPage({ params }: Props) {
         editionId={editionId}
         initialValues={getEditionFormInitialValues(edition)}
         hasStoredCover={edition.coverStorageKey !== null}
+        canDeleteEdition={viewer.capabilities.editions[editionId]?.canDeleteEdition === true}
       />
     </div>
   );

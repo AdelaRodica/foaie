@@ -20,6 +20,7 @@ import type {
   GenreOption,
   WorkSummary,
 } from "@/lib/catalog/types";
+import catalogStyles from "@/components/catalog/catalog.module.css";
 
 import styles from "../../shared-page.module.css";
 
@@ -37,6 +38,7 @@ export default async function NewBookPage({ searchParams }: NewBookPageProps) {
   const query = normalizeSearchQuery(rawQuery);
   const authorId = firstValue(params.autor);
   const createMode = firstValue(params.mode) === "create";
+  const workDeleted = firstValue(params.obraEliminada) === "1";
   const shouldSearch = query.length >= 2;
 
   let hasError = false;
@@ -81,6 +83,11 @@ export default async function NewBookPage({ searchParams }: NewBookPageProps) {
         title="Añadir libro"
         description="Busca primero en el catálogo de Foaie. Si el libro ya existe, podrás revisar sus ediciones antes de crear una entrada nueva."
       />
+      {workDeleted ? (
+        <div className={catalogStyles.successNotice} role="status">
+          <strong>La obra se ha eliminado del catálogo.</strong>
+        </div>
+      ) : null}
       {createMode ? (
         hasError ? <EmptyState title="No podemos preparar el formulario" description="Vuelve a intentarlo para cargar los datos del catálogo." /> : <CatalogEntryForm genres={genres} initialTitle={rawQuery} />
       ) : (

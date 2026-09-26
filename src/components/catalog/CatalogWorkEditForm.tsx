@@ -3,10 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
-import { updateCatalogWorkAction } from "@/app/(app)/catalogo/[workId]/editar/actions";
+import {
+  deleteCatalogWorkAction,
+  updateCatalogWorkAction,
+} from "@/app/(app)/catalogo/[workId]/editar/actions";
 import type { GenreOption, WorkDetails } from "@/lib/catalog/types";
 
 import { ButtonLink } from "../ui/ButtonLink";
+import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { WorkFormSection } from "./WorkFormSection";
 import styles from "./catalog-form.module.css";
 
@@ -29,13 +33,16 @@ const focusTargets: Record<string, string> = {
 type CatalogWorkEditFormProps = Readonly<{
   details: WorkDetails;
   genres: GenreOption[];
+  canDeleteWork: boolean;
 }>;
 
-export function CatalogWorkEditForm({ details, genres }: CatalogWorkEditFormProps) {
+export function CatalogWorkEditForm({ details, genres, canDeleteWork }: CatalogWorkEditFormProps) {
   const router = useRouter();
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const submittingRef = useRef(false);
+  const deletingRef = useRef(false);
   const [failure, setFailure] = useState<FailedResult | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -57,7 +64,7 @@ export function CatalogWorkEditForm({ details, genres }: CatalogWorkEditFormProp
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isPending || submittingRef.current) return;
+    if (isPending || isDeleting || submittingRef.current || deletingRef.current) return;
     submittingRef.current = true;
     setFailure(null);
     const formData = new FormData(event.currentTarget);
@@ -80,6 +87,14 @@ export function CatalogWorkEditForm({ details, genres }: CatalogWorkEditFormProp
         });
       }
     });
+  }
+
+  async function deleteWork() {
+    if (submittingRef.current) return "Espera a que termine el guardado antes de eliminar la obra.";
+    const result = await deleteCatalogWorkAction(details.work.id);
+    if (!result.success) return result.message;
+    router.replace("/biblioteca/nuevo?obraEliminada=1");
+    return null;
   }
 
   const summaryErrors = failure
@@ -121,7 +136,7 @@ export function CatalogWorkEditForm({ details, genres }: CatalogWorkEditFormProp
       />
       <div className={styles.submitArea}>
         <div className={styles.formActions}>
-          <button className={styles.primaryButton} type="submit" disabled={isPending}>
+          <button className={styles.primaryButton} type="submit" disabled={isPending || isDeleting}>
             {isPending ? "Guardando…" : "Guardar cambios"}
           </button>
           <ButtonLink href={`/catalogo/${details.work.id}`} variant="secondary">
@@ -129,6 +144,27 @@ export function CatalogWorkEditForm({ details, genres }: CatalogWorkEditFormProp
           </ButtonLink>
         </div>
       </div>
+      <section className={styles.dangerZone} aria-labelledby="delete-work-title">
+        <div>
+          <h2 id="delete-work-title">Eliminar del catálogo</h2>
+          <p>{canDeleteWork ? "Elimina esta obra de forma permanente." : "Esta obra no puede eliminarse mientras conserve ediciones."}</p>
+        </div>
+        {canDeleteWork ? (
+          <ConfirmDeleteDialog
+            title="Eliminar obra"
+            description="Esta obra se eliminará del catálogo. Esta acción no se puede deshacer."
+            triggerLabel="Eliminar obra"
+            confirmLabel="Eliminar obra"
+            pendingLabel="Eliminando…"
+            disabled={isPending}
+            onConfirm={deleteWork}
+            onPendingChange={(pending) => {
+              deletingRef.current = pending;
+              setIsDeleting(pending);
+            }}
+          />
+        ) : null}
+      </section>
     </form>
   );
 }

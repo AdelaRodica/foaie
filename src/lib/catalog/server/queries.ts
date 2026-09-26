@@ -185,6 +185,22 @@ export async function getWorkById(workId: string): Promise<WorkSummary> {
   return mapWorkSummary(data);
 }
 
+export async function getEditionWorkId(editionId: string): Promise<string> {
+  const validId = parseId(editionId, "getEditionWorkId");
+  const supabase = await createAuthenticatedCatalogClient();
+  const { data, error } = await supabase
+    .from("editions")
+    .select("id,work_id")
+    .eq("id", validId)
+    .maybeSingle();
+
+  if (error) throw mapCatalogReadError(error, "getEditionWorkId");
+  if (!data) {
+    throw new CatalogError("not_found", { operation: "getEditionWorkId" });
+  }
+  return data.work_id;
+}
+
 export async function getAuthorById(authorId: string): Promise<AuthorSummary> {
   const validId = parseId(authorId, "getAuthorById");
   const supabase = await createAuthenticatedCatalogClient();

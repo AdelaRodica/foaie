@@ -65,7 +65,7 @@ schema_paths = []
 [db.seed]
 # If enabled, seeds the database after migrations during a db reset.
 enabled = false
-# Re-enable in Stage 3 when Foaie has domain entities suitable for reproducible sample data.
+# Keep disabled until a disposable local/CI demo dataset is intentionally introduced.
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
 sql_paths = ["./seed.sql"]

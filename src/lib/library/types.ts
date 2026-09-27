@@ -11,3 +11,18 @@ export type LibraryMembership = Readonly<{
   editionId: string;
   addedAt: string;
 }>;
+
+export type LibraryItem = Readonly<{
+  id: string;
+  addedAt: string;
+  edition: Readonly<{
+    id: string;
+    format: string;
+    coverSrc: string | null;
+    work: Readonly<{
+      id: string;
+      title: string;
+      authors: readonly string[];
+    }>;
+  }>;
+}>;

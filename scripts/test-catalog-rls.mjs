@@ -697,5 +697,4 @@ try {
 if (testsRun === 29 && testsPassed === 29 && cleanupSucceeded && !process.exitCode) {
   console.log("29/29 tests passed");
   console.log("Cleanup verified: no catalog test rows remain");
-  console.log("work_genres: positive policy tests pending Stage 3 seed");
 }

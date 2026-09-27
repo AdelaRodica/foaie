@@ -50,7 +50,6 @@ async function test(name, operation) {
   passed += 1;
   console.log(`PASS  ${tests}. ${name}`);
 }
-function skip(name, reason) { tests += 1; skipped += 1; console.log(`SKIP  ${tests}. ${name}: ${reason}`); }
 async function createEntry(api, payload, testName) {
   const result = await rpc(api, payload); noError(result.error, testName, "RPC failed");
   assert(Array.isArray(result.data) && result.data.length === 1, testName, "RPC did not return exactly one row");
@@ -151,16 +150,11 @@ try {
 
   const genreResult = await a.from("genres").select("id").limit(1);
   noError(genreResult.error, "genre discovery", "genre read failed");
-  if (genreResult.data.length) {
-    let genreEntry;
-    await test("A creates entry with controlled genre", async () => { genreEntry = await createEntry(a, args(`Genre ${marker}`, `Genre edition ${marker}`, { p_genre_relations: [{ genre_id: genreResult.data[0].id, is_primary: true }] }), "genre entry"); worksA.push(genreEntry.work_id); editionsA.push(genreEntry.edition_id); });
-    await test("genre relation persists", async () => { const r = await a.from("work_genres").select("genre_id").eq("work_id", genreEntry.work_id).single(); noError(r.error, "genre relation", "missing relation"); assert(r.data.genre_id === genreResult.data[0].id, "genre relation", "wrong genre"); });
-    await test("primary genre persists", async () => { const r = await a.from("work_genres").select("is_primary").eq("work_id", genreEntry.work_id).single(); noError(r.error, "primary genre", "missing relation"); assert(r.data.is_primary === true, "primary genre", "primary flag changed"); });
-  } else {
-    skip("positive genre entry", "pending controlled seed in Stage 3F");
-    skip("positive genre relation", "pending controlled seed in Stage 3F");
-    skip("positive primary genre", "pending controlled seed in Stage 3F");
-  }
+  assert(genreResult.data.length > 0, "genre discovery", "structural genre seed is missing");
+  let genreEntry;
+  await test("A creates entry with controlled genre", async () => { genreEntry = await createEntry(a, args(`Genre ${marker}`, `Genre edition ${marker}`, { p_genre_relations: [{ genre_id: genreResult.data[0].id, is_primary: true }] }), "genre entry"); worksA.push(genreEntry.work_id); editionsA.push(genreEntry.edition_id); });
+  await test("genre relation persists", async () => { const r = await a.from("work_genres").select("genre_id").eq("work_id", genreEntry.work_id).single(); noError(r.error, "genre relation", "missing relation"); assert(r.data.genre_id === genreResult.data[0].id, "genre relation", "wrong genre"); });
+  await test("primary genre persists", async () => { const r = await a.from("work_genres").select("is_primary").eq("work_id", genreEntry.work_id).single(); noError(r.error, "primary genre", "missing relation"); assert(r.data.is_primary === true, "primary genre", "primary flag changed"); });
 
   const validationCases = [
     ["invalid work shape", { ...args(`Shape ${marker}`, `Shape edition ${marker}`), p_work: [] }, `Shape ${marker}`, `Shape edition ${marker}`],

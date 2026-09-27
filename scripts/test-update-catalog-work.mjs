@@ -329,27 +329,23 @@ try {
 
   const genres = await a.from("genres").select("id").limit(1);
   noError(genres.error, "genre discovery", "genre read failed");
-  if (genres.data.length) {
-    await test("A replaces controlled genres", async () => {
-      await updateSuccessfully(args(`Genre update ${marker}`, {
-        p_genre_relations: [{
-          genre_id: genres.data[0].id,
-          is_primary: true,
-        }],
-      }), "genre update");
-    });
-    await test("primary genre state is stored", async () => {
-      const state = await readState("genre state");
-      assert(
-        state.genres.length === 1 && state.genres[0].is_primary === true,
-        "genre state",
-        "primary genre was not stored",
-      );
-    });
-  } else {
-    skip("A replaces controlled genres", "pending controlled seed in Stage 3F");
-    skip("primary genre state is stored", "pending controlled seed in Stage 3F");
-  }
+  assert(genres.data.length > 0, "genre discovery", "structural genre seed is missing");
+  await test("A replaces controlled genres", async () => {
+    await updateSuccessfully(args(`Genre update ${marker}`, {
+      p_genre_relations: [{
+        genre_id: genres.data[0].id,
+        is_primary: true,
+      }],
+    }), "genre update");
+  });
+  await test("primary genre state is stored", async () => {
+    const state = await readState("genre state");
+    assert(
+      state.genres.length === 1 && state.genres[0].is_primary === true,
+      "genre state",
+      "primary genre was not stored",
+    );
+  });
 
   await restoreBaseline("B ownership baseline");
   const beforeB = await readState("B ownership state");
@@ -480,7 +476,7 @@ try {
       assert(result.data.length === 0, "null owner", "null-owner work was editable");
     });
   } else {
-    skip("null-owner work cannot be updated", "will be verified after Stage 3F seed");
+    skip("null-owner work cannot be updated", "requires a system-owned fixture in a disposable local/CI environment");
   }
 } catch (error) {
   const safe = error instanceof SafeTestError

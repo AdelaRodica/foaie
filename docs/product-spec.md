@@ -1044,23 +1044,20 @@ ISBN es opcional y pertenece siempre a la edición. `format` y `publication_date
 
 ### `user_editions` (Etapa 4; aplazado)
 
-Relaciona la biblioteca personal con la edición y separa datos de propiedad de los bibliográficos.
+Representa exclusivamente la pertenencia de una edición existente a la Biblioteca privada de un usuario. `works` y `editions` siguen siendo catálogo global: añadir una edición a Biblioteca no duplica la obra ni la edición, no cambia `created_by_profile_id` y no transfiere la propiedad o autoría del registro de catálogo.
 
 | Campo | Tipo | Reglas |
 |---|---|---|
-| `id` | uuid | PK |
-| `user_id` | uuid | FK→`public.profiles(id)`, NN |
-| `edition_id` | uuid | FK→editions, NN |
-| `library_status` | enum | NN: PENDING/READING/FINISHED/ABANDONED |
-| `is_favorite` | boolean | NN false |
-| `is_owned` | boolean | NN false (“comprado”) |
-| `is_loaned` | boolean | NN false |
-| `loaned_to` | varchar(120) | Opcional, privado |
-| `acquired_at` | date | Opcional |
-| `personal_characters` | text | Opcional en MVP; normalizable después |
-| `created_at`, `updated_at` | timestamptz | NN |
+| `id` | uuid | PK, default `gen_random_uuid()` |
+| `user_id` | uuid | FK→`public.profiles(id)`, NN, default `auth.uid()`, `ON DELETE CASCADE` |
+| `edition_id` | uuid | FK→`public.editions(id)`, NN, `ON DELETE RESTRICT` |
+| `created_at` | timestamptz | NN, default `now()` |
 
-Unique (`user_id`,`edition_id`). El estado se sincroniza desde la lectura abierta, pero no sustituye al historial.
+Unique (`user_id`,`edition_id`). Eliminar un perfil elimina sus relaciones privadas de Biblioteca. Una edición presente en cualquier Biblioteca no puede eliminarse físicamente del catálogo; la FK con `ON DELETE RESTRICT` es la autoridad final. Una mejora futura de interfaz podrá anticipar ese bloqueo sin revelar qué usuarios, cuántos usuarios ni qué bibliotecas contienen la edición.
+
+El núcleo mínimo de la Etapa 4 no incorpora `library_status`, valoración, reseña, progreso, fechas de lectura, favorito, propiedad, préstamo ni fecha de adquisición. La Etapa 4 modela pertenencia; la Etapa 5 incorporará `reading_sessions` como fuente de estado de lectura, progreso e historial, sin diseñar aquí su estructura definitiva.
+
+RLS permitirá a `authenticated` seleccionar, insertar y eliminar únicamente sus propias relaciones; `anon` no tendrá acceso y otros usuarios no podrán leer ni modificar relaciones ajenas. No se concede `UPDATE` porque el modelo mínimo no contiene atributos editables. La identidad procede de `auth.uid()` y no de datos enviados por la interfaz.
 
 ### `reading_sessions` (Etapa 5; aplazado)
 
@@ -1528,12 +1525,15 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 
 ### Etapa 4 — Biblioteca
 
-**Objetivo:** encontrar y explorar.  
-**Tareas:** cuadrícula/lista, búsqueda, filtros MVP, ordenación, URL con estado de filtros, paginación, skeleton/empty/error; vista exploratoria de pendientes con estanterías dinámicas por género principal, estantería `Sin género` y acceso “Ver todos” a la Biblioteca filtrada por `Pendientes + género`.<br>
+**Objetivo:** crear la relación privada entre cada usuario y las ediciones existentes que añade a su Biblioteca, y permitir encontrar y explorar esas ediciones sin duplicar ni transferir la propiedad del catálogo.<br>
+**Modelo mínimo:** `user_editions` representa exclusivamente pertenencia usuario↔edición. Usa `user_id` hacia `public.profiles(id)` con `ON DELETE CASCADE`, `edition_id` hacia `public.editions(id)` con `ON DELETE RESTRICT` y unicidad por (`user_id`, `edition_id`).<br>
+**Tareas:** migración y RLS de `user_editions`; aplicación remota y suite de aislamiento A/B; tipos y acceso server-only; acciones para añadir y quitar; consulta y DTO privado; controles de pertenencia desde el catálogo; y listado real con estados loading/empty/error en `/biblioteca`.<br>
+**Filtros de lectura:** `Leyendo`, `Pendientes`, `Leídos` y `Abandonados` no tienen una fuente de verdad en el núcleo mínimo de la Etapa 4. Permanecerán inactivos, aplazados o simplificados a `Todos` hasta que la Etapa 5 introduzca `reading_sessions`; también quedan aplazadas hasta entonces las estanterías derivadas de pendientes.<br>
 **Módulos:** `app/library`, `BookCard`, `FilterPanel`, `PendingGenreShelves`, `GenreShelf`, `HorizontalBookRail`, consultas.<br>
 **Dependencias:** Etapa 3.  
-**Resultado:** biblioteca funcional con 500 registros de prueba.  
-**Terminada cuando:** las combinaciones devuelven datos correctos, los filtros se pueden compartir/recargar y el rendimiento es aceptable; las estanterías solo muestran géneros con pendientes, no duplican libros por géneros secundarios, incluyen los pendientes sin género y funcionan desde 320 px con tacto, trackpad, ratón y teclado, sin autoplay ni bucle infinito y respetando WCAG 2.2 AA y `prefers-reduced-motion`.
+**Resultado:** Biblioteca privada funcional basada en ediciones reales del catálogo. Cualquier dataset amplio de prueba —incluido un objetivo de 500 relaciones— pertenece exclusivamente a desarrollo local, CI o un entorno desechable y nunca constituye seed automático de producción.<br>
+**Subdivisión prevista:** 4A diseño; 4B migración `user_editions` + RLS; 4C aplicación remota + suite A/B; 4D tipos + acceso server-only; 4E acciones de añadir/quitar; 4F consulta + DTO privado; 4G UI de añadir/quitar desde catálogo; 4H listado real de `/biblioteca`; 4I QA y cierre. Es una guía de entrega incremental y puede ajustarse si la implementación descubre una dependencia real.<br>
+**Terminada cuando:** cada usuario puede añadir, consultar y quitar sus propias ediciones sin ver ni modificar relaciones ajenas; los duplicados están impedidos; una edición usada por cualquier Biblioteca no puede eliminarse físicamente; el catálogo conserva su identidad global; y el flujo funciona desde 320 px con teclado y tecnologías asistivas, respetando WCAG 2.2 AA.
 
 **Git:** rama `feature/library`; punto de commit al estabilizar vistas y al completar búsqueda/filtros; mensaje final sugerido `feat: add library search and filters`; `push` después de cada commit estable; fusionar cuando pruebas de filtros, recarga de URL, accesibilidad, responsive y rendimiento con datos de prueba pasen.
 

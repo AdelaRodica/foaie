@@ -840,7 +840,7 @@ Foaie comenzará como un **monolito modular**: una aplicación Next.js y una bas
 
 - Supabase hosted será inicialmente un proyecto exclusivo de desarrollo. Docker y `supabase start` quedan pospuestos; podrán reconsiderarse para resets locales, pruebas RLS aisladas o CI.
 - Las migraciones SQL versionadas en Git son la fuente de verdad, con claves foráneas, restricciones e índices guiados por consultas reales. El Dashboard de Supabase no será la fuente habitual de cambios de esquema.
-- La Etapa 2 no requiere un seed versionado: la única tabla propia es `public.profiles`, cuyo ciclo de vida depende de `auth.users`, y no se crearán identidades Auth artificialmente desde SQL para satisfacer un criterio documental. Los dos usuarios ficticios empleados por la suite RLS real —11 pruebas superadas— son evidencia de aislamiento, no un seed reproducible. El seed de datos de dominio se introducirá en la Etapa 3, cuando existan obras, ediciones u otras entidades adecuadas.
+- La Etapa 2 no requiere un seed versionado: la única tabla propia es `public.profiles`, cuyo ciclo de vida depende de `auth.users`, y no se crearán identidades Auth artificialmente desde SQL para satisfacer un criterio documental. Los dos usuarios ficticios empleados por la suite RLS real —11 pruebas superadas— son evidencia de aislamiento, no un seed reproducible. La Etapa 3 introduce únicamente el dataset estructural de géneros controlados; el contenido del catálogo y los posibles datos demo siguen una política separada definida en su propia sección.
 - `user_id` se incluye desde el inicio en entidades personales e índices compuestos frecuentes, por ejemplo (`user_id`, `status`) o (`user_id`, `finished_at`).
 - Las entidades personales futuras conservarán `user_id` como FK a `public.profiles(id)`, pero cada tabla se creará en la etapa funcional que la necesite.
 - Los UUID evitan identificadores públicos secuenciales, pero no son una barrera de autorización.
@@ -973,6 +973,40 @@ Representa la obra, independiente de cualquier edición.
 ### `genres` y `work_genres`
 
 `genres` es un catálogo global controlado con `id` uuid PK, `name` varchar(120) NN, `slug` varchar(140) UNIQUE y timestamps. `work_genres` usa `work_id` + `genre_id` como PK compuesta e incluye `is_primary` boolean NN. Una obra puede pertenecer a varios géneros, pero una restricción garantiza como máximo un género principal por obra. El género principal permitirá posteriormente agrupar los pendientes en Biblioteca; los géneros secundarios seguirán disponibles como filtros. Los tags personales no forman parte de la Etapa 3.
+
+#### Política de seed del catálogo
+
+`genres` es el único dataset estructural inicial necesario para la Etapa 3. Debe existir en todos los entornos, incluida producción, permanecer versionado y aplicarse mediante una migración SQL. La migración de la Etapa 3F usa UUID deterministas, slugs explícitos y estables, y una estrategia idempotente de conflicto por `slug`, sin añadir nuevas restricciones al modelo.
+
+La lista inicial controlada es:
+
+| Nombre | Slug |
+|---|---|
+| Novela | `novela` |
+| Misterio | `misterio` |
+| Thriller | `thriller` |
+| Fantasía | `fantasia` |
+| Ciencia ficción | `ciencia-ficcion` |
+| Romance | `romance` |
+| Terror | `terror` |
+| Ficción histórica | `ficcion-historica` |
+| Aventuras | `aventuras` |
+| Infantil y juvenil | `infantil-juvenil` |
+| Poesía | `poesia` |
+| Teatro | `teatro` |
+| Ensayo | `ensayo` |
+| Biografía y memorias | `biografia-memorias` |
+| Historia | `historia` |
+| Ciencia | `ciencia` |
+| Filosofía | `filosofia` |
+| Psicología | `psicologia` |
+| Ciencias sociales | `ciencias-sociales` |
+
+Esta taxonomía inicial es plana: no añade jerarquías, traducciones ni subgéneros. `works`, `editions`, `authors`, `publishers` y `series` son contenido del catálogo, no configuración necesaria para arrancar la aplicación, y no se insertan automáticamente como demo en producción. Tampoco se siembran `work_authors`, `work_genres` ni `work_series`, salvo las relaciones correspondientes a contenido real creado posteriormente.
+
+Un dataset demo navegable podrá añadirse más adelante, separado del seed estructural y exclusivamente para desarrollo local, CI o entornos desechables. Su mecanismo previsto es `supabase/seed.sql`, pero no se crea ni se habilita mientras no exista esa necesidad y un entorno apropiado. Los datos demo nunca forman parte del despliegue de producción.
+
+Los registros system-owned usan `created_by_profile_id = NULL`: son legibles globalmente por cuentas autenticadas, pero las policies y capabilities impiden que usuarios normales los editen o eliminen. La Etapa 3F no introduce una obra demo permanente en producción para probar este caso; su cobertura unitaria es suficiente por ahora y la comprobación remota podrá completarse en un futuro entorno local o CI con fixtures system-owned.
 
 ### `publishers`
 
@@ -1336,7 +1370,7 @@ components/
 lib/
   auth, db, supabase, validation, dates, statistics, book-providers
 supabase/
-  config + migraciones SQL + pruebas RLS; seed de dominio desde la Etapa 3
+  config + migraciones SQL + pruebas RLS; datos estructurales versionados desde la Etapa 3
 styles/
   tokens + globals + componentes
 tests/
@@ -1482,12 +1516,13 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 ### Etapa 3 — Catálogo manual de libros
 
 **Objetivo:** crear y mantener un catálogo global compartido de obras y ediciones, separado de las bibliotecas personales.<br>
-**Tareas:** migraciones y RLS para `works`, `editions`, `authors`, `work_authors`, `genres`, `work_genres`, `publishers`, `series` y `work_series`; validaciones; formulario progresivo; portada; edición/eliminación con referencias seguras; avisos de posibles duplicados; y seed ficticio reproducible de datos de dominio.<br>
+**Tareas:** migraciones y RLS para `works`, `editions`, `authors`, `work_authors`, `genres`, `work_genres`, `publishers`, `series` y `work_series`; validaciones; formulario progresivo; portada; edición/eliminación con referencias seguras; avisos de posibles duplicados; y migración versionada del catálogo estructural de géneros.<br>
 **Módulos:** `components/books`, `lib/validation/books`, acciones/servicios de libros.  
 **Dependencias:** Etapa 2, almacenamiento de imágenes.  
 **Resultado:** CRUD manual del catálogo, sin crear todavía `user_editions` ni `reading_sessions`.<br>
-**Seed:** UUID deterministas y datos totalmente ficticios con varias obras, autores, géneros, editoriales y series; una obra independiente; una obra con varios autores y géneros; varias ediciones de una obra; formatos PHYSICAL, EBOOK y AUDIOBOOK; una edición sin ISBN; una edición sin portada; posiciones de serie 1, 2 y 2.5; y una obra relacionada con más de una serie. Sus `created_by_profile_id` serán NULL. `supabase/seed.sql` se creará y habilitará durante esta etapa, no antes.<br>
-**Terminada cuando:** se puede crear un registro mínimo o completo, corregirlo, eliminarlo con confirmación cuando las referencias lo permitan y recuperar errores sin perder el formulario; las restricciones, políticas del catálogo y seed reproducible funcionan sin API; los ISBN no nulos son únicos; y las advertencias por títulos o nombres normalizados no bloquean registros legítimos.
+**Seed:** únicamente `genres` es estructural y llega a producción mediante una migración SQL versionada, con UUID deterministas, slugs estables e idempotencia por `slug`. Obras, ediciones, autores, editoriales, series y sus relaciones no se insertan como demo en producción. Un futuro `supabase/seed.sql` podrá contener datos demo separados solo para desarrollo local, CI o entornos desechables.<br>
+**QA del seed:** los géneros estructurales permiten que `create_catalog_entry` pase de 45 PASS / 3 SKIP a 48 PASS / 0 SKIP y que `update_catalog_work` pase de 30 PASS / 3 SKIP a 32 PASS / 1 SKIP. El SKIP remoto restante comprueba una obra con `created_by_profile_id = NULL`; no justifica introducir contenido demo permanente en producción y se completará cuando exista un entorno desechable con fixtures system-owned.<br>
+**Terminada cuando:** se puede crear un registro mínimo o completo, corregirlo, eliminarlo con confirmación cuando las referencias lo permitan y recuperar errores sin perder el formulario; las restricciones, políticas del catálogo y géneros estructurales versionados funcionan sin API; los ISBN no nulos son únicos; y las advertencias por títulos o nombres normalizados no bloquean registros legítimos.
 
 **Git:** rama `feature/catalog`; commit cuando el CRUD manual sea estable, con commits previos separados para validación o subida de portadas si lo requieren; mensaje sugerido `feat: implement manual book catalog`; `push` al cerrar cada parte comprobable y antes de revisión; fusionar cuando crear, editar, eliminar, duplicados, errores y permisos estén probados.
 
@@ -1776,7 +1811,7 @@ Las 20 capacidades de la sección 2.2 constituyen el contrato. Cualquier idea nu
 | Accesibilidad tardía | Reescritura | Criterios AA por etapa y componentes semánticos |
 | Pérdida o filtración de datos | Daño alto | autorización por recurso, backups/exportación, secretos de servidor |
 | PWA/offline prematuro | Conflictos de sincronización | Posponer a V2 tras estabilizar persistencia online |
-| Portfolio con datos vacíos | Poco convincente | Seed ficticio coherente y caso de estudio |
+| Portfolio con datos vacíos | Poco convincente | Dataset demo separado en un entorno desechable y caso de estudio |
 
 ## E. Decisiones que debes tomar antes de programar
 

@@ -1042,7 +1042,7 @@ Los registros system-owned usan `created_by_profile_id = NULL`: son legibles glo
 
 ISBN es opcional y pertenece siempre a la edición. `format` y `publication_date_precision` usan texto con `CHECK`, no tipos ENUM de PostgreSQL, para permitir evolucionar el esquema mediante migraciones sencillas. Los títulos y nombres normalizados ayudan a buscar y advertir sobre posibles duplicados, pero no son claves de identidad ni se deduplican automáticamente. La Etapa 3 no incorpora deduplicación fuzzy.
 
-### `user_editions` (Etapa 4; aplazado)
+### `user_editions` (Etapa 4)
 
 Representa exclusivamente la pertenencia de una edición existente a la Biblioteca privada de un usuario. `works` y `editions` siguen siendo catálogo global: añadir una edición a Biblioteca no duplica la obra ni la edición, no cambia `created_by_profile_id` y no transfiere la propiedad o autoría del registro de catálogo.
 
@@ -1535,7 +1535,7 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 **Subdivisión prevista:** 4A diseño; 4B migración `user_editions` + RLS; 4C aplicación remota + suite A/B; 4D tipos + acceso server-only; 4E acciones de añadir/quitar; 4F consulta + DTO privado; 4G UI de añadir/quitar desde catálogo; 4H listado real de `/biblioteca`; 4I QA y cierre. Es una guía de entrega incremental y puede ajustarse si la implementación descubre una dependencia real.<br>
 **Terminada cuando:** cada usuario puede añadir, consultar y quitar sus propias ediciones sin ver ni modificar relaciones ajenas; los duplicados están impedidos; una edición usada por cualquier Biblioteca no puede eliminarse físicamente; el catálogo conserva su identidad global; y el flujo funciona desde 320 px con teclado y tecnologías asistivas, respetando WCAG 2.2 AA.
 
-**Git:** rama `feature/library`; punto de commit al estabilizar vistas y al completar búsqueda/filtros; mensaje final sugerido `feat: add library search and filters`; `push` después de cada commit estable; fusionar cuando pruebas de filtros, recarga de URL, accesibilidad, responsive y rendimiento con datos de prueba pasen.
+**Git:** rama `feature/library`; commits separados para la relación privada, acceso server-only, acciones, consulta, controles desde catálogo y listado real; mensaje final sugerido `feat: render personal library`; `push` después de cada commit estable; fusionar cuando añadir, quitar, listar, estado vacío, navegación al catálogo, privacidad/RLS, accesibilidad y responsive estén probados.
 
 ### Etapa 5 — Lecturas y progreso
 

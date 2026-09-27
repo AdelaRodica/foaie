@@ -270,6 +270,42 @@ export type Database = {
           },
         ]
       }
+      user_editions: {
+        Row: {
+          created_at: string
+          edition_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          edition_id: string
+          id?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          edition_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_editions_edition_id_fkey"
+            columns: ["edition_id"]
+            isOneToOne: false
+            referencedRelation: "editions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_editions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_authors: {
         Row: {
           author_id: string

@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getWorkDetailsForViewer } from "@/lib/catalog/server/queries";
 import type { WorkDetailsForViewer } from "@/lib/catalog/types";
+import { getMyLibraryMemberships } from "@/lib/library/server/queries";
 
 import styles from "../../shared-page.module.css";
 import catalogStyles from "@/components/catalog/catalog.module.css";
@@ -28,6 +29,14 @@ async function loadWorkDetails(workId: string): Promise<WorkDetailsForViewer | n
   }
 }
 
+async function loadLibraryMemberships(editionIds: readonly string[]) {
+  try {
+    return await getMyLibraryMemberships(editionIds);
+  } catch {
+    return null;
+  }
+}
+
 export default async function CatalogWorkPage({ params, searchParams }: CatalogWorkPageProps) {
   const { workId } = await params;
   const { creado, actualizado, editar, edicionActualizada, editarEdicion, edicionEliminada } = await searchParams;
@@ -35,6 +44,9 @@ export default async function CatalogWorkPage({ params, searchParams }: CatalogW
 
   if (viewer) {
     const { details, capabilities } = viewer;
+    const memberships = await loadLibraryMemberships(
+      details.editions.map(({ id }) => id),
+    );
     return (
       <div className={styles.page}>
         <PageHeader
@@ -53,7 +65,7 @@ export default async function CatalogWorkPage({ params, searchParams }: CatalogW
         {creado === "1" ? (
           <div className={catalogStyles.successNotice} role="status">
             <strong>La obra y su edición se han guardado en el catálogo.</strong>
-            <span>Añadirla a tu Biblioteca estará disponible en la siguiente etapa.</span>
+            <span>Ya puedes añadir la edición a tu Biblioteca desde esta ficha.</span>
           </div>
         ) : null}
         {actualizado === "1" ? (
@@ -81,11 +93,17 @@ export default async function CatalogWorkPage({ params, searchParams }: CatalogW
             <strong>Esta edición no está disponible para edición desde tu cuenta.</strong>
           </div>
         ) : null}
+        {memberships === null ? (
+          <div className={catalogStyles.accessNotice} role="alert">
+            <strong>No hemos podido consultar tu biblioteca en este momento.</strong>
+          </div>
+        ) : null}
         <CatalogWorkDetails
           details={details}
           editableEditionIds={details.editions
             .filter((edition) => capabilities.editions[edition.id]?.canEditEdition)
             .map((edition) => edition.id)}
+          libraryEditionIds={memberships ? [...memberships] : null}
         />
       </div>
     );

@@ -1,6 +1,7 @@
 import type { WorkEditionDetails } from "@/lib/catalog/types";
 import { formatAudioDuration, formatPublicationDate } from "@/lib/catalog/presentation";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { LibraryEditionControl } from "@/components/library/LibraryEditionControl";
 
 import styles from "./catalog.module.css";
 
@@ -10,10 +11,11 @@ const formatLabels: Record<string, string> = {
   AUDIOBOOK: "Audiolibro",
 };
 
-export function EditionCard({ edition, workId, canEdit = false }: Readonly<{
+export function EditionCard({ edition, workId, canEdit = false, isInMyLibrary }: Readonly<{
   edition: WorkEditionDetails;
   workId: string;
   canEdit?: boolean;
+  isInMyLibrary?: boolean;
 }>) {
   const date = formatPublicationDate(edition.publicationDate, edition.publicationDatePrecision);
   const facts = [
@@ -39,6 +41,12 @@ export function EditionCard({ edition, workId, canEdit = false }: Readonly<{
         {edition.subtitle ? <p>{edition.subtitle}</p> : null}
         {facts.length > 0 ? <p className={styles.metadata}>{facts.join(" · ")}</p> : null}
         {edition.isbn13 || edition.isbn10 ? <p className={styles.isbn}>ISBN {edition.isbn13 ?? edition.isbn10}</p> : null}
+        {isInMyLibrary !== undefined ? (
+          <LibraryEditionControl
+            editionId={edition.id}
+            isInMyLibrary={isInMyLibrary}
+          />
+        ) : null}
         {canEdit ? <div className={styles.editionActions}><ButtonLink href={`/catalogo/${workId}/ediciones/${edition.id}/editar`} variant="secondary">Editar edición</ButtonLink></div> : null}
       </div>
     </article>

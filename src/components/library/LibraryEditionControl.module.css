@@ -1,0 +1,64 @@
+.control {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.actions {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.membership {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-action-soft);
+  color: var(--color-action-hover);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.button {
+  min-height: var(--control-min-size);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width) solid var(--color-action);
+  border-radius: var(--radius-field);
+  background: var(--color-surface);
+  color: var(--color-action-hover);
+  cursor: pointer;
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+}
+
+.button:hover:not(:disabled) {
+  background: var(--color-action-soft);
+}
+
+.button:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.status,
+.error {
+  margin: 0;
+  font-size: var(--font-size-small);
+  overflow-wrap: anywhere;
+}
+
+.status {
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-danger);
+}

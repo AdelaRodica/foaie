@@ -1059,30 +1059,41 @@ El núcleo mínimo de la Etapa 4 no incorpora `library_status`, valoración, res
 
 RLS permitirá a `authenticated` seleccionar, insertar y eliminar únicamente sus propias relaciones; `anon` no tendrá acceso y otros usuarios no podrán leer ni modificar relaciones ajenas. No se concede `UPDATE` porque el modelo mínimo no contiene atributos editables. La identidad procede de `auth.uid()` y no de datos enviados por la interfaz.
 
-### `reading_sessions` (Etapa 5; aplazado)
+### `reading_sessions` (Etapa 5)
 
-Cada fila es una lectura o relectura.
+`user_editions` representa pertenencia a Biblioteca; cada `reading_sessions` representa una lectura o relectura concreta de esa pertenencia. Una relación `user_edition` admite de cero a muchas sesiones. Una pertenencia sin sesiones está **Pendiente**: `PLANNED` no es un estado persistido del núcleo. Una futura planificación explícita de relecturas queda fuera de este alcance.
 
 | Campo | Tipo | Reglas |
 |---|---|---|
-| `id` | uuid | PK |
-| `user_edition_id` | uuid | FK→user_editions, NN |
-| `sequence_number` | smallint | NN, 1 primera lectura |
-| `status` | enum | NN: PLANNED/READING/FINISHED/ABANDONED |
-| `started_at`, `finished_at` | date | Opcionales según estado |
-| `current_value` | integer | NN, 0; estado actual sincronizado para consultas rápidas, no historial de actividad |
-| `progress_unit` | enum | NN: PAGES/PERCENT/MINUTES |
-| `rating` | numeric(2,1) | Opcional, 0–5, múltiplo de 0,5 |
-| `review` | text | Opcional |
-| `abandon_reason` | text | Opcional |
-| `is_month_favorite` | boolean | NN false |
-| `created_at`, `updated_at` | timestamptz | NN |
+| `id` | uuid | PK, default `gen_random_uuid()` |
+| `user_edition_id` | uuid | FK→`public.user_editions(id)`, NN, `ON DELETE CASCADE` |
+| `status` | text | NN; CHECK READING/FINISHED/ABANDONED |
+| `started_at` | date | Requerida en READING; puede ser NULL en historia cerrada incompleta |
+| `finished_at` | date | Requerida solo en FINISHED |
+| `abandoned_at` | date | Requerida solo en ABANDONED |
+| `current_value` | integer | NN, default 0, CHECK `>= 0`; snapshot actual, no historial |
+| `progress_unit` | text | NN; CHECK PAGES/PERCENT/MINUTES; inmutable durante la sesión |
+| `created_at` | timestamptz | NN, default `now()` |
 
-Restricciones: `finished_at >= started_at`; una sola sesión READING por `user_edition_id`; unique (`user_edition_id`,`sequence_number`). El total se toma de la edición, pero podría guardarse snapshot si se necesita preservar historia ante correcciones.
+Los estados y fechas mantienen estas invariantes: READING exige `started_at` y ambas fechas de cierre nulas; FINISHED exige `finished_at` y `abandoned_at` nula; ABANDONED exige `abandoned_at` y `finished_at` nula. En sesiones FINISHED o ABANDONED, `started_at` puede ser nula para admitir historia incompleta o correcciones históricas. Cuando existe, la fecha de cierre correspondiente no puede precederla.
 
-### `progress_entries`
+La base de datos garantiza como máximo una sesión activa mediante un índice UNIQUE parcial sobre (`user_edition_id`) `WHERE status = 'READING'`; el mensaje de aplicación no sustituye esta protección frente a concurrencia. Una sesión FINISHED o ABANDONED nunca vuelve a READING. Cada relectura crea una fila nueva: por ejemplo, M1 puede tener S1 READING→FINISHED y, meses después, S2 READING→FINISHED.
 
-Cada actualización de progreso conserva una entrada histórica; actualizar `reading_sessions.current_value` para consultas rápidas nunca sustituye ni sobrescribe este historial.
+No se almacena `sequence_number`. El historial se ordena de forma determinista por `started_at DESC NULLS LAST`, `created_at DESC`, `id DESC`; si la interfaz necesita «Primera lectura» o «Segunda lectura», deriva el ordinal del historial ordenado. Esto evita `max(sequence)+1`, carreras de concurrencia y una transacción o RPC innecesaria al iniciar. Tampoco se incorpora `updated_at` al núcleo inicial: las fechas semánticas, `created_at` y el futuro historial de progreso cubren las necesidades aprobadas; podrá añadirse si aparece una necesidad real y un mecanismo canónico para mantenerlo.
+
+`current_value` puede disminuir para corregir errores humanos; no existe una restricción de monotonía. PERCENT exige además `current_value <= 100`. Como guía, PHYSICAL o EBOOK con páginas fiables usa PAGES, EBOOK sin páginas fiables usa PERCENT y AUDIOBOOK usa MINUTES; si no existe longitud fiable se usa PERCENT. No se almacenan a la vez un valor absoluto y un porcentaje derivable. `progress_unit` se fija al crear la sesión y las actualizaciones ordinarias solo cambian `current_value`; una relectura nueva puede escoger otra unidad.
+
+Finalizar conserva `current_value` y `progress_unit`, registra `finished_at` y no fuerza automáticamente 100 %, `page_count` ni `audio_duration_minutes`. Abandonar registra `abandoned_at` y conserva progreso e historia; no convierte la sesión en FINISHED ni borra avances.
+
+`reading_sessions` no duplica `user_id`: la propiedad se deriva mediante `user_edition_id → user_editions.user_id`. Las políticas RLS de SELECT, INSERT, UPDATE y DELETE comprobarán conceptualmente un `EXISTS` sobre `public.user_editions` donde la relación pertenezca a `(select auth.uid())`, sin `SECURITY DEFINER`, `service_role` ni bypass. PUBLIC y `anon` no reciben privilegios; `authenticated` recibe únicamente los necesarios para cada operación cuando se implemente. Nunca se permite escritura directa de `id`, `created_at` ni de `user_edition_id` después del INSERT.
+
+Quitar una pertenencia sin sesiones sigue siendo una operación cotidiana válida. Si existe cualquier `reading_session`, el DELETE normal de `user_editions` queda bloqueado por RLS/policy para no borrar historia silenciosamente. La FK `reading_sessions.user_edition_id → user_editions.id ON DELETE CASCADE` se conserva para el cleanup integral de una cuenta o perfil. Un flujo destructivo explícito «eliminar historial y quitar» queda como decisión futura.
+
+Los filtros de Biblioteca son mutuamente excluyentes: `Todos` incluye todas las pertenencias; `Pendientes`, las que tienen cero sesiones; `Leyendo`, las que tienen una sesión READING; `Leídos`, las que no tienen READING y cuya última sesión cerrada es FINISHED; `Abandonados`, las que no tienen READING y cuya última sesión cerrada es ABANDONED. La última sesión usa el mismo orden determinista `started_at DESC NULLS LAST`, `created_at DESC`, `id DESC`. Así, una lectura terminada antigua sin otra nueva aparece en Leídos; con una relectura activa, en Leyendo; con una relectura abandonada posterior, en Abandonados; y varias FINISHED sin activa permanecen en Leídos. Cada pertenencia aparece en `Todos` y exactamente uno de los cuatro estados.
+
+### `progress_entries` (Etapa 5; posterior a `reading_sessions`)
+
+Cada actualización de progreso conserva una entrada histórica; `reading_sessions.current_value` es el snapshot actual y nunca sustituye ni sobrescribe este historial. Esta tabla se incorpora después de la primera migración de `reading_sessions`. Al implementar la actualización de progreso, el snapshot y su entrada histórica deberán escribirse atómicamente, probablemente mediante una operación transaccional/RPC cuya forma concreta se diseñará entonces.
 
 | Campo | Tipo | Reglas |
 |---|---|---|
@@ -1096,9 +1107,9 @@ Cada actualización de progreso conserva una entrada histórica; actualizar `rea
 | `note` | varchar(500) | Opcional |
 | `created_at`, `updated_at` | timestamptz | NN; `created_at` es el momento técnico de creación en Foaie |
 
-`PROGRESS` representa lectura real; `CORRECTION` corrige administrativamente un valor anterior, modifica la secuencia efectiva y no genera por sí misma actividad lectora. Una entrada contribuye como actividad cuando `entry_kind = PROGRESS` y su diferencia respecto al valor efectivo anterior es positiva. La comparación se realiza dentro de la misma `reading_session` y una unidad compatible, con orden determinista por `recorded_at`, `created_at` e `id`. La primera entrada positiva se compara con cero. No se comparan páginas, porcentaje y minutos entre sí; resolver cambios de unidad dentro de una sesión queda pendiente y no amplía el MVP actual.
+`PROGRESS` representa lectura real; `CORRECTION` corrige administrativamente un valor anterior, modifica la secuencia efectiva y no genera por sí misma actividad lectora, racha ni páginas leídas del día. Una entrada contribuye como actividad cuando `entry_kind = PROGRESS` y su diferencia respecto al valor efectivo anterior es positiva. La comparación se realiza dentro de la misma `reading_session` y una unidad compatible, con orden determinista por `recorded_at`, `created_at` e `id`. La primera entrada positiva se compara con cero. La unidad coincide con la unidad inmutable de la sesión; no se comparan páginas, porcentaje y minutos entre sí.
 
-No es obligatorio crear artificialmente una entrada al finalizar. Los días de lectura resultan de unir las fechas de `PROGRESS` positivo con `finished_at` de sesiones finalizadas válidas y aplicar `DISTINCT` por `user_id` y fecha civil. Así, progreso y finalización en una misma jornada cuentan una vez. Si una sesión se reabre, su `finished_at` deja de aportar actividad de finalización, mientras sus progresos históricos reales pueden seguir contando. No se crea `reading_progress_events`: `progress_entries` es el historial fuente.
+No es obligatorio crear artificialmente una entrada al finalizar. Los días de lectura resultan de unir las fechas de `PROGRESS` positivo con `finished_at` de sesiones finalizadas válidas y aplicar `DISTINCT` por usuario propietario y fecha civil. Así, progreso y finalización en una misma jornada cuentan una vez. Las sesiones cerradas no se reabren; una relectura crea otra sesión y los progresos históricos de la anterior permanecen intactos. No se crea `reading_progress_events`: `progress_entries` es el historial fuente.
 
 ## 8.4 Organización y recuerdos
 
@@ -1189,8 +1200,8 @@ Mi álbum se deriva de `reading_sessions` con estado `FINISHED`; no añade `albu
 | Tiempo medio | Media inclusiva de `finished_at - started_at + 1` | Excluir fechas faltantes y sesiones abandonadas; mediana en V2 por valores extremos |
 | Progreso del Reto lector | `valor_actual/meta*100`; una barra puede completarse visualmente al 100 %, pero cifra y porcentaje conservan el valor real aunque supere la meta | Sesiones FINISHED por `finished_at`, año y zona horaria; relecturas cuentan; evitar división por cero |
 | Comparación anual | `(actual-anterior)` y, si anterior >0, `%` | Si anterior=0 mostrar diferencia absoluta, no “∞ %” |
-| Abandono | abandonadas / (terminadas + abandonadas) | Periodo basado en fecha de cierre; requiere `finished_at` también al abandonar o `closed_at` futuro |
-| Relecturas | Sesiones terminadas con `sequence_number > 1` | No inferir por duplicar edición |
+| Abandono | abandonadas / (terminadas + abandonadas) | Periodo basado en `finished_at` o `abandoned_at`, según el estado |
+| Relecturas | Sesiones adicionales de una misma pertenencia, derivadas del historial ordenado | No inferir por duplicar edición ni almacenar un ordinal como fuente de verdad |
 | Sagas iniciadas | Saga con ≥1 obra terminada | `work_series` + sesiones |
 | Sagas completadas | Todas las obras marcadas como principales están terminadas | Difícil por sagas abiertas/incompletas; debe permitirse marcar alcance manualmente |
 
@@ -1539,14 +1550,16 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 
 ### Etapa 5 — Lecturas y progreso
 
-**Objetivo:** completar el núcleo del diario.  
-**Tareas:** iniciar, actualizar, terminar, abandonar, relectura, historial, rating de medias estrellas y reseña; conservar cada actualización como `progress_entry` sin sustituirla por `current_value`; distinguir progreso real de correcciones; calcular y preservar `activity_date` desde `recorded_at` y la zona IANA vigente; crear, editar y eliminar múltiples citas por sesión con localización y nota personal opcionales; elegir una cita destacada; guardar o editar un recuerdo reflexivo opcional.<br>
+**Objetivo:** completar el núcleo del diario con sesiones, progreso e historial fiables.
+**Tareas:** iniciar, terminar y abandonar sesiones; crear relecturas como sesiones nuevas; conservar cada actualización como `progress_entry` sin sustituirla por `current_value`; distinguir progreso real de correcciones; calcular y preservar `activity_date` desde `recorded_at` y la zona IANA vigente; exponer estado actual, historial y filtros reales de Biblioteca.<br>
 **Módulos:** `components/readings`, servicios, ficha.  
 **Dependencias:** Etapa 4.  
-**Resultado:** ciclo de lectura completo.  
-**Terminada cuando:** estados y fechas permanecen consistentes, cada actualización conserva su evento histórico y su fecha civil, correcciones y unidades incompatibles no generan falsos días de lectura, una relectura no sobrescribe historia, citas y recuerdo pertenecen a la sesión correcta y finalizar sigue siendo posible sin valoración, cita destacada ni respuesta reflexiva; el E2E crítico pasa.
+**Resultado:** ciclo de lectura y progreso completo, sin mezclar pertenencia a Biblioteca con estado de lectura.
+**Contenido reflexivo:** rating, reseña, citas, cita destacada y recuerdo reflexivo se decidirán en una ampliación posterior dentro de la Etapa 5. No forman parte de la primera migración ni bloquean sesiones, progreso, filtros o relecturas.<br>
+**Subdivisión prevista:** 5A diseño y documentación; 5B `reading_sessions` + RLS; 5C aplicación remota + suite A/B; 5D tipos + acceso server-only; 5E acciones de ciclo start/finish/abandon; 5F `progress_entries` + actualización atómica; 5G consultas + DTOs de estado actual; 5H UI de estado/progreso; 5I filtros reales de Biblioteca; 5J historial/relecturas; 5K contenido reflexivo solo si continúa dentro del alcance; 5L QA y cierre. Es una guía incremental y puede ajustarse si aparece una dependencia real.<br>
+**Terminada cuando:** estados y fechas permanecen consistentes, cada actualización conserva atómicamente su evento histórico y snapshot, correcciones y unidades incompatibles no generan falsos días de lectura, una relectura no sobrescribe historia, los filtros son mutuamente excluyentes y el E2E crítico pasa. El contenido reflexivo no bloquea este cierre si se aplaza explícitamente.
 
-**Git:** rama `feature/readings`; commits separados para ciclo de estado y recuerdos si facilita la revisión; mensaje sugerido `feat: implement reading progress tracking`; `push` tras cada flujo estable; fusionar cuando el E2E iniciar→actualizar→terminar pase y relectura, abandono, fechas y autorización estén verificados.
+**Git:** rama `feature/reading-progress`; commits separados por las subfases anteriores cuando facilite la revisión; mensaje final sugerido `feat: implement reading progress tracking`; `push` tras cada flujo estable; fusionar cuando el E2E iniciar→actualizar→terminar pase y relectura, abandono, fechas y autorización estén verificados.
 
 ### Etapa 5.5 — Objetivos y continuidad lectora
 

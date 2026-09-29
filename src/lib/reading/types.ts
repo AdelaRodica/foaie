@@ -2,6 +2,7 @@ export type ReadingErrorKind =
   | "unauthenticated"
   | "not_found"
   | "conflict"
+  | "invalid_transition"
   | "permission"
   | "constraint"
   | "unexpected";
@@ -33,4 +34,14 @@ export type StartReadingInput = Readonly<{
   startedAt: string;
   progressUnit: ReadingProgressUnit;
   currentValue?: number;
+}>;
+
+export type FinishReadingResult = Readonly<{
+  outcome: "finished" | "already_finished";
+  session: ReadingSession;
+}>;
+
+export type AbandonReadingResult = Readonly<{
+  outcome: "abandoned" | "already_abandoned";
+  session: ReadingSession;
 }>;

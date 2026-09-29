@@ -44,3 +44,20 @@ export async function getActiveReadingSession(
 
   return data ? mapReadingSession(data) : null;
 }
+
+export async function getReadingSession(
+  sessionId: string,
+): Promise<ReadingSession | null> {
+  const supabase = await createAuthenticatedReadingReadClient();
+  const { data, error } = await supabase
+    .from("reading_sessions")
+    .select(READING_SESSION_COLUMNS)
+    .eq("id", sessionId)
+    .maybeSingle();
+
+  if (error) {
+    throw mapReadingReadError(error, "getReadingSession");
+  }
+
+  return data ? mapReadingSession(data) : null;
+}

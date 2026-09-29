@@ -11,6 +11,7 @@ const errorMessages: Record<ReadingErrorKind, string> = {
   unauthenticated: "Debes iniciar sesión para continuar.",
   not_found: "No se ha encontrado la lectura solicitada.",
   conflict: "Ya existe una lectura incompatible con esta operación.",
+  invalid_transition: "La lectura ya se encuentra en un estado incompatible.",
   permission: "No tienes permiso para realizar esta operación.",
   constraint: "La operación no cumple las reglas de lectura.",
   unexpected: "No se ha podido completar la operación de lectura.",

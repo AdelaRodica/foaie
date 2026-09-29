@@ -232,6 +232,50 @@ export type Database = {
           },
         ]
       }
+      reading_sessions: {
+        Row: {
+          abandoned_at: string | null
+          created_at: string
+          current_value: number
+          finished_at: string | null
+          id: string
+          progress_unit: string
+          started_at: string | null
+          status: string
+          user_edition_id: string
+        }
+        Insert: {
+          abandoned_at?: string | null
+          created_at?: string
+          current_value?: number
+          finished_at?: string | null
+          id?: string
+          progress_unit: string
+          started_at?: string | null
+          status: string
+          user_edition_id: string
+        }
+        Update: {
+          abandoned_at?: string | null
+          created_at?: string
+          current_value?: number
+          finished_at?: string | null
+          id?: string
+          progress_unit?: string
+          started_at?: string | null
+          status?: string
+          user_edition_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reading_sessions_user_edition_id_fkey"
+            columns: ["user_edition_id"]
+            isOneToOne: false
+            referencedRelation: "user_editions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       series: {
         Row: {
           created_at: string

@@ -4,6 +4,7 @@ import { ReadingError } from "./errors";
 import {
   resolveAbandonReadingFallback,
   resolveFinishReadingFallback,
+  resolveProgressFallback,
 } from "./lifecycle";
 import type { ReadingSession, ReadingStatus } from "./types";
 
@@ -81,6 +82,33 @@ describe("resolveAbandonReadingFallback", () => {
   it("treats a remaining READING session as unexpected", () => {
     expectReadingError(
       () => resolveAbandonReadingFallback(createSession("READING")),
+      "unexpected",
+    );
+  });
+});
+
+describe("resolveProgressFallback", () => {
+  it("maps a hidden or missing session to not_found", () => {
+    expectReadingError(() => resolveProgressFallback(null), "not_found");
+  });
+
+  it("rejects FINISHED as an invalid transition", () => {
+    expectReadingError(
+      () => resolveProgressFallback(createSession("FINISHED")),
+      "invalid_transition",
+    );
+  });
+
+  it("rejects ABANDONED as an invalid transition", () => {
+    expectReadingError(
+      () => resolveProgressFallback(createSession("ABANDONED")),
+      "invalid_transition",
+    );
+  });
+
+  it("treats a remaining READING session as unexpected", () => {
+    expectReadingError(
+      () => resolveProgressFallback(createSession("READING")),
       "unexpected",
     );
   });

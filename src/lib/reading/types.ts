@@ -17,6 +17,10 @@ export type ReadingProgressUnit =
   | "PERCENT"
   | "MINUTES";
 
+export type ProgressEntryKind =
+  | "PROGRESS"
+  | "CORRECTION";
+
 export type ReadingSession = Readonly<{
   id: string;
   userEditionId: string;
@@ -29,11 +33,28 @@ export type ReadingSession = Readonly<{
   createdAt: string;
 }>;
 
+export type ProgressEntry = Readonly<{
+  id: string;
+  readingSessionId: string;
+  kind: ProgressEntryKind;
+  previousValue: number;
+  newValue: number;
+  occurredOn: string;
+  createdAt: string;
+}>;
+
 export type StartReadingInput = Readonly<{
   userEditionId: string;
   startedAt: string;
   progressUnit: ReadingProgressUnit;
   currentValue?: number;
+}>;
+
+export type RecordReadingProgressInput = Readonly<{
+  readingSessionId: string;
+  targetValue: number;
+  kind: ProgressEntryKind;
+  occurredOn: string;
 }>;
 
 export type FinishReadingResult = Readonly<{

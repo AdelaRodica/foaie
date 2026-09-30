@@ -4,14 +4,18 @@ import { mapReadingMutationError, ReadingError } from "../errors";
 import {
   resolveAbandonReadingFallback,
   resolveFinishReadingFallback,
+  resolveProgressFallback,
 } from "../lifecycle";
 import {
+  mapProgressEntry,
   mapReadingSession,
   READING_SESSION_COLUMNS,
 } from "../mappers";
 import type {
   AbandonReadingResult,
   FinishReadingResult,
+  ProgressEntry,
+  RecordReadingProgressInput,
   ReadingSession,
   StartReadingInput,
 } from "../types";
@@ -92,4 +96,34 @@ export async function abandonReading(
   }
 
   return resolveAbandonReadingFallback(await getReadingSession(sessionId));
+}
+
+export async function recordReadingProgress(
+  input: RecordReadingProgressInput,
+): Promise<ProgressEntry> {
+  const supabase = await createAuthenticatedReadingWritableClient();
+  const { data, error } = await supabase.rpc("record_reading_progress", {
+    p_reading_session_id: input.readingSessionId,
+    p_target_value: input.targetValue,
+    p_kind: input.kind,
+    p_occurred_on: input.occurredOn,
+  });
+
+  if (error) {
+    throw mapReadingMutationError(error, "recordReadingProgress");
+  }
+
+  if (!data) {
+    throw new ReadingError("unexpected", { operation: "recordReadingProgress" });
+  }
+
+  if (data.length === 1) {
+    return mapProgressEntry(data[0]);
+  }
+
+  if (data.length > 1) {
+    throw new ReadingError("unexpected", { operation: "recordReadingProgress" });
+  }
+
+  return resolveProgressFallback(await getReadingSession(input.readingSessionId));
 }

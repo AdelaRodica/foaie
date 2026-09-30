@@ -197,6 +197,44 @@ export type Database = {
         }
         Relationships: []
       }
+      progress_entries: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          new_value: number
+          occurred_on: string
+          previous_value: number
+          reading_session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          new_value: number
+          occurred_on: string
+          previous_value: number
+          reading_session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          new_value?: number
+          occurred_on?: string
+          previous_value?: number
+          reading_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progress_entries_reading_session_id_fkey"
+            columns: ["reading_session_id"]
+            isOneToOne: false
+            referencedRelation: "reading_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       publishers: {
         Row: {
           created_at: string
@@ -515,6 +553,23 @@ export type Database = {
         Returns: {
           edition_id: string
           work_id: string
+        }[]
+      }
+      record_reading_progress: {
+        Args: {
+          p_kind: string
+          p_occurred_on: string
+          p_reading_session_id: string
+          p_target_value: number
+        }
+        Returns: {
+          created_at: string
+          id: string
+          kind: string
+          new_value: number
+          occurred_on: string
+          previous_value: number
+          reading_session_id: string
         }[]
       }
       update_catalog_work: {

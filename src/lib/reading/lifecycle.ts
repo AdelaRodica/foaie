@@ -40,3 +40,17 @@ export function resolveAbandonReadingFallback(
 
   throw new ReadingError("unexpected", { operation: "abandonReading" });
 }
+
+export function resolveProgressFallback(session: ReadingSession | null): never {
+  if (!session) {
+    throw new ReadingError("not_found", { operation: "recordReadingProgress" });
+  }
+
+  if (session.status === "FINISHED" || session.status === "ABANDONED") {
+    throw new ReadingError("invalid_transition", {
+      operation: "recordReadingProgress",
+    });
+  }
+
+  throw new ReadingError("unexpected", { operation: "recordReadingProgress" });
+}

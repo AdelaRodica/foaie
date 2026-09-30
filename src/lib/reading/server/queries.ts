@@ -2,10 +2,12 @@ import "server-only";
 
 import { mapReadingReadError } from "../errors";
 import {
+  mapProgressEntry,
   mapReadingSession,
+  PROGRESS_ENTRY_COLUMNS,
   READING_SESSION_COLUMNS,
 } from "../mappers";
-import type { ReadingSession } from "../types";
+import type { ProgressEntry, ReadingSession } from "../types";
 import { createAuthenticatedReadingReadClient } from "./auth";
 
 export async function listReadingSessionsForUserEdition(
@@ -60,4 +62,23 @@ export async function getReadingSession(
   }
 
   return data ? mapReadingSession(data) : null;
+}
+
+export async function listProgressEntries(
+  sessionId: string,
+): Promise<ProgressEntry[]> {
+  const supabase = await createAuthenticatedReadingReadClient();
+  const { data, error } = await supabase
+    .from("progress_entries")
+    .select(PROGRESS_ENTRY_COLUMNS)
+    .eq("reading_session_id", sessionId)
+    .order("occurred_on", { ascending: false })
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
+
+  if (error) {
+    throw mapReadingReadError(error, "listProgressEntries");
+  }
+
+  return data.map(mapProgressEntry);
 }

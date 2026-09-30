@@ -33,6 +33,24 @@ export type ReadingSession = Readonly<{
   createdAt: string;
 }>;
 
+export type CurrentReadingState =
+  | Readonly<{
+      kind: "PENDING";
+      session: null;
+    }>
+  | Readonly<{
+      kind: "READING";
+      session: ReadingSession & { status: "READING" };
+    }>
+  | Readonly<{
+      kind: "FINISHED";
+      session: ReadingSession & { status: "FINISHED" };
+    }>
+  | Readonly<{
+      kind: "ABANDONED";
+      session: ReadingSession & { status: "ABANDONED" };
+    }>;
+
 export type ProgressEntry = Readonly<{
   id: string;
   readingSessionId: string;

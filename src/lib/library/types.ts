@@ -1,3 +1,5 @@
+import type { CurrentReadingState } from "../reading/types";
+
 export type LibraryErrorKind =
   | "unauthenticated"
   | "not_found"
@@ -15,6 +17,7 @@ export type LibraryMembership = Readonly<{
 export type LibraryItem = Readonly<{
   id: string;
   addedAt: string;
+  currentReadingState: CurrentReadingState;
   edition: Readonly<{
     id: string;
     format: string;

@@ -1,4 +1,5 @@
 import { LibraryError } from "./errors";
+import type { CurrentReadingState } from "../reading/types";
 import type { LibraryItem } from "./types";
 
 type LibraryAuthorRelationRow = Readonly<{
@@ -28,7 +29,10 @@ export type LibraryItemRow = Readonly<{
   edition: LibraryEditionRow | null;
 }>;
 
-export function mapLibraryItem(row: LibraryItemRow): LibraryItem {
+export function mapLibraryItem(
+  row: LibraryItemRow,
+  currentReadingState: CurrentReadingState,
+): LibraryItem {
   const edition = row.edition;
   if (!edition) {
     throw new LibraryError("unexpected", { operation: "mapLibraryItem" });
@@ -49,6 +53,7 @@ export function mapLibraryItem(row: LibraryItemRow): LibraryItem {
   return {
     id: row.id,
     addedAt: row.created_at,
+    currentReadingState,
     edition: {
       id: edition.id,
       format: edition.format,

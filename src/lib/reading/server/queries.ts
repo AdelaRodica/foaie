@@ -29,6 +29,25 @@ export async function listReadingSessionsForUserEdition(
   return data.map(mapReadingSession);
 }
 
+export async function listReadingSessionsForUserEditions(
+  userEditionIds: readonly string[],
+): Promise<ReadingSession[]> {
+  const uniqueUserEditionIds = [...new Set(userEditionIds)];
+  if (uniqueUserEditionIds.length === 0) return [];
+
+  const supabase = await createAuthenticatedReadingReadClient();
+  const { data, error } = await supabase
+    .from("reading_sessions")
+    .select(READING_SESSION_COLUMNS)
+    .in("user_edition_id", uniqueUserEditionIds);
+
+  if (error) {
+    throw mapReadingReadError(error, "listReadingSessionsForUserEditions");
+  }
+
+  return data.map(mapReadingSession);
+}
+
 export async function getActiveReadingSession(
   userEditionId: string,
 ): Promise<ReadingSession | null> {

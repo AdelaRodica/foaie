@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { deriveCurrentReadingState } from "./current-state";
+import {
+  deriveCurrentReadingState,
+  deriveCurrentReadingStatesByUserEdition,
+} from "./current-state";
 import { ReadingError } from "./errors";
 import type { ReadingSession, ReadingStatus } from "./types";
 
@@ -182,5 +185,111 @@ describe("deriveCurrentReadingState", () => {
     deriveCurrentReadingState(sessions);
 
     expect(sessions.map(({ id }) => id)).toEqual(originalOrder);
+  });
+});
+
+describe("deriveCurrentReadingStatesByUserEdition", () => {
+  it("derives PENDING for every requested membership without sessions", () => {
+    expect(
+      [...deriveCurrentReadingStatesByUserEdition(["membership-a", "membership-b"], [])],
+    ).toEqual([
+      ["membership-a", { kind: "PENDING", session: null }],
+      ["membership-b", { kind: "PENDING", session: null }],
+    ]);
+  });
+
+  it("derives independent states for pending, active, and finished memberships", () => {
+    const active = createSession("READING", { userEditionId: "membership-b" });
+    const finished = createSession("FINISHED", { userEditionId: "membership-c" });
+    const states = deriveCurrentReadingStatesByUserEdition(
+      ["membership-a", "membership-b", "membership-c"],
+      [finished, active],
+    );
+
+    expect(states.get("membership-a")).toEqual({ kind: "PENDING", session: null });
+    expect(states.get("membership-b")).toEqual({ kind: "READING", session: active });
+    expect(states.get("membership-c")).toEqual({ kind: "FINISHED", session: finished });
+  });
+
+  it("does not mix interleaved sessions from different memberships", () => {
+    const activeA = createSession("READING", { userEditionId: "membership-a" });
+    const finishedB = createSession("FINISHED", {
+      id: "00000000-0000-0000-0000-000000000002",
+      userEditionId: "membership-b",
+    });
+    const oldFinishedA = createSession("FINISHED", {
+      id: "00000000-0000-0000-0000-000000000003",
+      userEditionId: "membership-a",
+      startedAt: "2025-01-01",
+    });
+    const states = deriveCurrentReadingStatesByUserEdition(
+      ["membership-a", "membership-b"],
+      [finishedB, oldFinishedA, activeA],
+    );
+
+    expect(states.get("membership-a")).toEqual({ kind: "READING", session: activeA });
+    expect(states.get("membership-b")).toEqual({ kind: "FINISHED", session: finishedB });
+  });
+
+  it("reuses latest-closed derivation for a membership history", () => {
+    const older = createSession("FINISHED", {
+      userEditionId: "membership-a",
+      startedAt: "2026-01-01",
+    });
+    const newer = createSession("ABANDONED", {
+      id: "00000000-0000-0000-0000-000000000002",
+      userEditionId: "membership-a",
+      startedAt: "2026-01-10",
+    });
+
+    const expected = { kind: "ABANDONED", session: newer };
+
+    expect(
+      deriveCurrentReadingStatesByUserEdition(
+        ["membership-a"],
+        [newer, older],
+      ).get("membership-a"),
+    ).toEqual(expected);
+    expect(
+      deriveCurrentReadingStatesByUserEdition(
+        ["membership-a"],
+        [older, newer],
+      ).get("membership-a"),
+    ).toEqual(expected);
+  });
+
+  it("ignores sessions for memberships that were not requested", () => {
+    const foreignSession = createSession("READING", {
+      userEditionId: "membership-not-requested",
+    });
+    const states = deriveCurrentReadingStatesByUserEdition(
+      ["membership-a"],
+      [foreignSession],
+    );
+
+    expect(states).toEqual(
+      new Map([["membership-a", { kind: "PENDING", session: null }]]),
+    );
+    expect(states.has("membership-not-requested")).toBe(false);
+  });
+
+  it("does not mutate either input", () => {
+    const userEditionIds = ["membership-b", "membership-a"];
+    const sessions = [
+      createSession("FINISHED", { userEditionId: "membership-a" }),
+      createSession("READING", {
+        id: "00000000-0000-0000-0000-000000000002",
+        userEditionId: "membership-b",
+      }),
+    ];
+    const originalIds = [...userEditionIds];
+    const originalSessions = [...sessions];
+
+    const states = deriveCurrentReadingStatesByUserEdition(userEditionIds, sessions);
+
+    expect(states.get("membership-a")?.kind).toBe("FINISHED");
+    expect(states.get("membership-b")?.kind).toBe("READING");
+    expect(userEditionIds).toEqual(originalIds);
+    expect(sessions).toEqual(originalSessions);
   });
 });

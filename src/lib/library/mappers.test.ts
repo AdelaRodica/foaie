@@ -2,6 +2,26 @@ import { describe, expect, it } from "vitest";
 
 import { LibraryError } from "./errors";
 import { mapLibraryItem, type LibraryItemRow } from "./mappers";
+import type { CurrentReadingState, ReadingSession } from "../reading/types";
+
+const pendingState: CurrentReadingState = { kind: "PENDING", session: null };
+
+const readingSession: ReadingSession & { status: "READING" } = {
+  id: "b18dab83-297b-4c6e-8a91-668831ef1594",
+  userEditionId: "b31b8fc1-23df-459a-a663-05571f597f4c",
+  status: "READING",
+  startedAt: "2026-09-28",
+  finishedAt: null,
+  abandonedAt: null,
+  currentValue: 42,
+  progressUnit: "PAGES",
+  createdAt: "2026-09-28T12:00:00.000Z",
+};
+
+const readingState: CurrentReadingState = {
+  kind: "READING",
+  session: readingSession,
+};
 
 function row(overrides: Partial<LibraryItemRow> = {}): LibraryItemRow {
   return {
@@ -38,9 +58,10 @@ function row(overrides: Partial<LibraryItemRow> = {}): LibraryItemRow {
 
 describe("mapLibraryItem", () => {
   it("maps the approved private library item shape", () => {
-    expect(mapLibraryItem(row())).toEqual({
+    expect(mapLibraryItem(row(), pendingState)).toEqual({
       id: "b31b8fc1-23df-459a-a663-05571f597f4c",
       addedAt: "2026-09-27T12:00:00.000Z",
+      currentReadingState: pendingState,
       edition: {
         id: "eb0137ca-5856-46e8-a410-e547d7058c85",
         format: "PHYSICAL",
@@ -59,7 +80,10 @@ describe("mapLibraryItem", () => {
     if (!value.edition) throw new Error("invalid test fixture");
 
     expect(
-      mapLibraryItem({ ...value, edition: { ...value.edition, cover_url: null } })
+      mapLibraryItem(
+        { ...value, edition: { ...value.edition, cover_url: null } },
+        pendingState,
+      )
         .edition.coverSrc,
     ).toBeNull();
   });
@@ -77,8 +101,10 @@ describe("mapLibraryItem", () => {
     };
 
     expect(
-      mapLibraryItem({ ...value, edition: { ...value.edition, work } }).edition.work
-        .authors,
+      mapLibraryItem(
+        { ...value, edition: { ...value.edition, work } },
+        pendingState,
+      ).edition.work.authors,
     ).toEqual(["Primero", "Segundo"]);
   });
 
@@ -87,13 +113,16 @@ describe("mapLibraryItem", () => {
     if (!value.edition?.work) throw new Error("invalid test fixture");
 
     expect(
-      mapLibraryItem({
-        ...value,
-        edition: {
-          ...value.edition,
-          work: { ...value.edition.work, work_authors: [] },
+      mapLibraryItem(
+        {
+          ...value,
+          edition: {
+            ...value.edition,
+            work: { ...value.edition.work, work_authors: [] },
+          },
         },
-      }).edition.work.authors,
+        pendingState,
+      ).edition.work.authors,
     ).toEqual([]);
   });
 
@@ -111,16 +140,18 @@ describe("mapLibraryItem", () => {
       },
     ],
   ])("rejects a missing required %s relation", (_name, overrides) => {
-    expect(() => mapLibraryItem(row(overrides))).toThrowError(LibraryError);
+    expect(() => mapLibraryItem(row(overrides), pendingState)).toThrowError(
+      LibraryError,
+    );
     try {
-      mapLibraryItem(row(overrides));
+      mapLibraryItem(row(overrides), pendingState);
     } catch (error) {
       expect(error).toMatchObject({ kind: "unexpected" });
     }
   });
 
   it("does not expose database or bridge fields", () => {
-    const result = mapLibraryItem(row());
+    const result = mapLibraryItem(row(), pendingState);
     const serialized = JSON.stringify(result);
 
     expect(serialized).not.toContain("user_id");
@@ -128,5 +159,16 @@ describe("mapLibraryItem", () => {
     expect(serialized).not.toContain("cover_storage_key");
     expect(serialized).not.toContain("work_authors");
     expect(serialized).not.toContain("position");
+  });
+
+  it("includes an active current reading state without changing catalog data", () => {
+    const result = mapLibraryItem(row(), readingState);
+
+    expect(result.currentReadingState).toBe(readingState);
+    expect(result.edition.work).toEqual({
+      id: "6d5045b1-a630-4368-855a-56897eb28b33",
+      title: "Una obra",
+      authors: ["Primer autor", "Segunda autora"],
+    });
   });
 });

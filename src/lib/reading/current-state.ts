@@ -73,3 +73,25 @@ export function deriveCurrentReadingState(
 
   return { kind: "ABANDONED", session: currentSession };
 }
+
+export function deriveCurrentReadingStatesByUserEdition(
+  userEditionIds: readonly string[],
+  sessions: readonly ReadingSession[],
+): ReadonlyMap<string, CurrentReadingState> {
+  const sessionsByUserEdition = new Map<string, ReadingSession[]>();
+
+  for (const userEditionId of userEditionIds) {
+    sessionsByUserEdition.set(userEditionId, []);
+  }
+
+  for (const session of sessions) {
+    sessionsByUserEdition.get(session.userEditionId)?.push(session);
+  }
+
+  return new Map(
+    [...sessionsByUserEdition].map(([userEditionId, matchingSessions]) => [
+      userEditionId,
+      deriveCurrentReadingState(matchingSessions),
+    ]),
+  );
+}

@@ -1,6 +1,8 @@
 import "server-only";
 
-import { mapLibraryReadError } from "../errors";
+import { deriveCurrentReadingStatesByUserEdition } from "../../reading/current-state";
+import { listReadingSessionsForUserEditions } from "../../reading/server/queries";
+import { LibraryError, mapLibraryReadError } from "../errors";
 import { mapLibraryItem } from "../mappers";
 import type { LibraryItem } from "../types";
 import { createAuthenticatedLibraryReadClient } from "./auth";
@@ -32,7 +34,20 @@ export async function listMyLibrary(): Promise<LibraryItem[]> {
     .order("id", { ascending: true });
 
   if (error) throw mapLibraryReadError(error, "listMyLibrary");
-  return data.map(mapLibraryItem);
+  if (data.length === 0) return [];
+
+  const userEditionIds = data.map(({ id }) => id);
+  const sessions = await listReadingSessionsForUserEditions(userEditionIds);
+  const states = deriveCurrentReadingStatesByUserEdition(userEditionIds, sessions);
+
+  return data.map((row) => {
+    const currentReadingState = states.get(row.id);
+    if (!currentReadingState) {
+      throw new LibraryError("unexpected", { operation: "listMyLibrary" });
+    }
+
+    return mapLibraryItem(row, currentReadingState);
+  });
 }
 
 export async function getMyLibraryMemberships(

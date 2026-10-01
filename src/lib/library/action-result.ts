@@ -14,6 +14,7 @@ export type LibraryActionResult =
         | "validation"
         | "unauthenticated"
         | "permission"
+        | "protected_history"
         | "constraint"
         | "unexpected";
       message: string;
@@ -29,6 +30,8 @@ const messages = {
   validation: "No hemos podido identificar la edición.",
   unauthenticated: "Inicia sesión para gestionar tu biblioteca.",
   permission: "No tienes permiso para modificar tu biblioteca.",
+  protected_history:
+    "Este libro conserva historial de lectura y no puede quitarse de tu Biblioteca.",
   constraint: "No se ha podido añadir esta edición a tu biblioteca.",
   unexpected: "No se ha podido actualizar tu biblioteca. Inténtalo de nuevo.",
 } as const;
@@ -48,7 +51,12 @@ export function libraryActionSuccess(
 }
 
 function libraryActionFailure(
-  kind: "unauthenticated" | "permission" | "constraint" | "unexpected",
+  kind:
+    | "unauthenticated"
+    | "permission"
+    | "protected_history"
+    | "constraint"
+    | "unexpected",
 ): LibraryActionResult {
   return { success: false, kind, message: messages[kind] };
 }
@@ -72,7 +80,11 @@ export function mapRemoveFromLibraryError(error: unknown): LibraryActionResult {
   if (!(error instanceof LibraryError)) return libraryActionFailure("unexpected");
 
   if (error.kind === "not_found") return libraryActionSuccess("already_removed");
-  if (error.kind === "unauthenticated" || error.kind === "permission") {
+  if (
+    error.kind === "unauthenticated" ||
+    error.kind === "permission" ||
+    error.kind === "protected_history"
+  ) {
     return libraryActionFailure(error.kind);
   }
 

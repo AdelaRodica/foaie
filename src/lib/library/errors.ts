@@ -10,6 +10,7 @@ type DatabaseError = Readonly<{ code?: string | null }>;
 const errorMessages: Record<LibraryErrorKind, string> = {
   unauthenticated: "Debes iniciar sesión para continuar.",
   not_found: "No se ha encontrado la relación de Biblioteca solicitada.",
+  protected_history: "La relación de Biblioteca conserva historial de lectura.",
   conflict: "La relación de Biblioteca ya existe.",
   permission: "No tienes permiso para realizar esta operación.",
   constraint: "La operación no cumple las reglas de la Biblioteca.",

@@ -41,6 +41,17 @@ describe("library action results", () => {
     });
   });
 
+  it("maps protected reading history to a public error", () => {
+    expect(
+      mapRemoveFromLibraryError(new LibraryError("protected_history")),
+    ).toEqual({
+      success: false,
+      kind: "protected_history",
+      message:
+        "Este libro conserva historial de lectura y no puede quitarse de tu Biblioteca.",
+    });
+  });
+
   it("uses the approved generic constraint message for add", () => {
     expect(mapAddToLibraryError(new LibraryError("constraint"))).toEqual({
       success: false,
@@ -75,6 +86,7 @@ describe("library action results", () => {
     expect(mapAddToLibraryError(new Error("database details"))).toEqual(expected);
     expect(mapAddToLibraryError(new LibraryError("not_found"))).toEqual(expected);
     expect(mapRemoveFromLibraryError(new LibraryError("constraint"))).toEqual(expected);
+    expect(mapAddToLibraryError(new LibraryError("protected_history"))).toEqual(expected);
   });
 
   it("provides the exact public success messages", () => {

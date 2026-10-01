@@ -3,6 +3,7 @@ import type { CurrentReadingState } from "../reading/types";
 export type LibraryErrorKind =
   | "unauthenticated"
   | "not_found"
+  | "protected_history"
   | "conflict"
   | "permission"
   | "constraint"

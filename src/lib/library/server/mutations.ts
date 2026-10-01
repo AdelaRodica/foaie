@@ -1,9 +1,10 @@
 import "server-only";
 
 import {
-  LibraryError,
   mapLibraryMutationError,
+  mapLibraryReadError,
 } from "../errors";
+import { resolveLibraryRemovalFallback } from "../removal";
 import type { LibraryMembership } from "../types";
 import { createAuthenticatedLibraryWritableClient } from "./auth";
 
@@ -36,9 +37,20 @@ export async function removeEditionFromLibrary(editionId: string): Promise<void>
     .maybeSingle();
 
   if (error) throw mapLibraryMutationError(error, "removeEditionFromLibrary");
-  if (!data) {
-    throw new LibraryError("not_found", {
-      operation: "removeEditionFromLibrary",
-    });
+  if (data) return;
+
+  const existence = await supabase
+    .from("user_editions")
+    .select("id")
+    .eq("edition_id", editionId)
+    .maybeSingle();
+
+  if (existence.error) {
+    throw mapLibraryReadError(
+      existence.error,
+      "removeEditionFromLibrary.exists",
+    );
   }
+
+  return resolveLibraryRemovalFallback(existence.data);
 }

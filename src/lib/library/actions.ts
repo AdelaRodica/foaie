@@ -49,7 +49,10 @@ export async function removeEditionFromLibraryAction(
     return libraryActionSuccess("removed");
   } catch (error) {
     const result = mapRemoveFromLibraryError(error);
-    if (result.success && result.state === "already_removed") {
+    if (
+      (result.success && result.state === "already_removed") ||
+      (!result.success && result.kind === "protected_history")
+    ) {
       revalidateLibraryViews();
     }
     return result;

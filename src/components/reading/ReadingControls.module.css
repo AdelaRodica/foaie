@@ -19,6 +19,14 @@
   outline-offset: var(--space-1);
 }
 
+.terminalDisclosure summary {
+  color: var(--color-text-muted);
+}
+
+.abandonDisclosure summary {
+  color: var(--color-danger);
+}
+
 .form {
   display: grid;
   gap: var(--space-4);

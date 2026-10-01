@@ -4,6 +4,7 @@ import type { LibraryItem } from "@/lib/library/types";
 import type { CurrentReadingState, ReadingProgressUnit } from "@/lib/reading/types";
 import { ReadingProgressForm } from "@/components/reading/ReadingProgressForm";
 import { ReadingStartForm } from "@/components/reading/ReadingStartForm";
+import { ReadingTerminalForm } from "@/components/reading/ReadingTerminalForm";
 
 import { LibraryEditionControl } from "./LibraryEditionControl";
 import styles from "./LibraryBookCard.module.css";
@@ -43,12 +44,16 @@ function renderReadingControls(
       return <ReadingStartForm userEditionId={userEditionId} mode="START" />;
     case "READING":
       return (
-        <ReadingProgressForm
-          key={`${state.session.id}:${state.session.currentValue}`}
-          sessionId={state.session.id}
-          progressUnit={state.session.progressUnit}
-          currentValue={state.session.currentValue}
-        />
+        <>
+          <ReadingProgressForm
+            key={`${state.session.id}:${state.session.currentValue}`}
+            sessionId={state.session.id}
+            progressUnit={state.session.progressUnit}
+            currentValue={state.session.currentValue}
+          />
+          <ReadingTerminalForm sessionId={state.session.id} mode="FINISH" />
+          <ReadingTerminalForm sessionId={state.session.id} mode="ABANDON" />
+        </>
       );
     case "FINISHED":
     case "ABANDONED":
@@ -103,7 +108,14 @@ export function LibraryBookCard({ item }: Readonly<{ item: LibraryItem }>) {
 
       {renderReadingControls(item.id, currentReadingState)}
 
-      <LibraryEditionControl editionId={edition.id} isInMyLibrary />
+      {currentReadingState.kind === "PENDING" ? (
+        <LibraryEditionControl editionId={edition.id} isInMyLibrary />
+      ) : (
+        <p className={styles.historyNotice}>
+          Este libro conserva historial de lectura y no puede quitarse de tu
+          Biblioteca.
+        </p>
+      )}
     </article>
   );
 }

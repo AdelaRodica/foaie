@@ -95,6 +95,14 @@
   font-size: var(--font-size-small);
 }
 
+.historyNotice {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-relaxed);
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 22rem) {
   .link {
     grid-template-columns: minmax(4.5rem, 5.5rem) minmax(0, 1fr);

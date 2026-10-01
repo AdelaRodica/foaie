@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { LibraryItem } from "@/lib/library/types";
 import type { CurrentReadingState, ReadingProgressUnit } from "@/lib/reading/types";
+import { ReadingProgressForm } from "@/components/reading/ReadingProgressForm";
 import { ReadingStartForm } from "@/components/reading/ReadingStartForm";
 
 import { LibraryEditionControl } from "./LibraryEditionControl";
@@ -33,7 +34,7 @@ function formatReadingProgress(value: number, unit: ReadingProgressUnit) {
   return unit satisfies never;
 }
 
-function renderReadingStartForm(
+function renderReadingControls(
   userEditionId: string,
   state: CurrentReadingState,
 ) {
@@ -41,7 +42,14 @@ function renderReadingStartForm(
     case "PENDING":
       return <ReadingStartForm userEditionId={userEditionId} mode="START" />;
     case "READING":
-      return null;
+      return (
+        <ReadingProgressForm
+          key={`${state.session.id}:${state.session.currentValue}`}
+          sessionId={state.session.id}
+          progressUnit={state.session.progressUnit}
+          currentValue={state.session.currentValue}
+        />
+      );
     case "FINISHED":
     case "ABANDONED":
       return <ReadingStartForm userEditionId={userEditionId} mode="REREAD" />;
@@ -93,7 +101,7 @@ export function LibraryBookCard({ item }: Readonly<{ item: LibraryItem }>) {
         </span>
       </Link>
 
-      {renderReadingStartForm(item.id, currentReadingState)}
+      {renderReadingControls(item.id, currentReadingState)}
 
       <LibraryEditionControl editionId={edition.id} isInMyLibrary />
     </article>

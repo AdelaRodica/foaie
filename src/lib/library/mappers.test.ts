@@ -5,6 +5,12 @@ import { mapLibraryItem, type LibraryItemRow } from "./mappers";
 import type { CurrentReadingState, ReadingSession } from "../reading/types";
 
 const pendingState: CurrentReadingState = { kind: "PENDING", session: null };
+const emptyHistory = {
+  sessionCount: 0,
+  readingCount: 0,
+  finishedCount: 0,
+  abandonedCount: 0,
+} as const;
 
 const readingSession: ReadingSession & { status: "READING" } = {
   id: "b18dab83-297b-4c6e-8a91-668831ef1594",
@@ -58,10 +64,11 @@ function row(overrides: Partial<LibraryItemRow> = {}): LibraryItemRow {
 
 describe("mapLibraryItem", () => {
   it("maps the approved private library item shape", () => {
-    expect(mapLibraryItem(row(), pendingState)).toEqual({
+    expect(mapLibraryItem(row(), pendingState, emptyHistory)).toEqual({
       id: "b31b8fc1-23df-459a-a663-05571f597f4c",
       addedAt: "2026-09-27T12:00:00.000Z",
       currentReadingState: pendingState,
+      readingHistory: emptyHistory,
       edition: {
         id: "eb0137ca-5856-46e8-a410-e547d7058c85",
         format: "PHYSICAL",
@@ -83,6 +90,7 @@ describe("mapLibraryItem", () => {
       mapLibraryItem(
         { ...value, edition: { ...value.edition, cover_url: null } },
         pendingState,
+        emptyHistory,
       )
         .edition.coverSrc,
     ).toBeNull();
@@ -104,6 +112,7 @@ describe("mapLibraryItem", () => {
       mapLibraryItem(
         { ...value, edition: { ...value.edition, work } },
         pendingState,
+        emptyHistory,
       ).edition.work.authors,
     ).toEqual(["Primero", "Segundo"]);
   });
@@ -122,6 +131,7 @@ describe("mapLibraryItem", () => {
           },
         },
         pendingState,
+        emptyHistory,
       ).edition.work.authors,
     ).toEqual([]);
   });
@@ -140,18 +150,18 @@ describe("mapLibraryItem", () => {
       },
     ],
   ])("rejects a missing required %s relation", (_name, overrides) => {
-    expect(() => mapLibraryItem(row(overrides), pendingState)).toThrowError(
+    expect(() => mapLibraryItem(row(overrides), pendingState, emptyHistory)).toThrowError(
       LibraryError,
     );
     try {
-      mapLibraryItem(row(overrides), pendingState);
+      mapLibraryItem(row(overrides), pendingState, emptyHistory);
     } catch (error) {
       expect(error).toMatchObject({ kind: "unexpected" });
     }
   });
 
   it("does not expose database or bridge fields", () => {
-    const result = mapLibraryItem(row(), pendingState);
+    const result = mapLibraryItem(row(), pendingState, emptyHistory);
     const serialized = JSON.stringify(result);
 
     expect(serialized).not.toContain("user_id");
@@ -162,9 +172,16 @@ describe("mapLibraryItem", () => {
   });
 
   it("includes an active current reading state without changing catalog data", () => {
-    const result = mapLibraryItem(row(), readingState);
+    const readingHistory = {
+      sessionCount: 1,
+      readingCount: 1,
+      finishedCount: 0,
+      abandonedCount: 0,
+    } as const;
+    const result = mapLibraryItem(row(), readingState, readingHistory);
 
     expect(result.currentReadingState).toBe(readingState);
+    expect(result.readingHistory).toBe(readingHistory);
     expect(result.edition.work).toEqual({
       id: "6d5045b1-a630-4368-855a-56897eb28b33",
       title: "Una obra",

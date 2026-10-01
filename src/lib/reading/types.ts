@@ -51,6 +51,13 @@ export type CurrentReadingState =
       session: ReadingSession & { status: "ABANDONED" };
     }>;
 
+export type ReadingHistorySummary = Readonly<{
+  sessionCount: number;
+  readingCount: number;
+  finishedCount: number;
+  abandonedCount: number;
+}>;
+
 export type ProgressEntry = Readonly<{
   id: string;
   readingSessionId: string;

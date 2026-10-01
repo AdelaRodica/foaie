@@ -26,5 +26,18 @@ export function filterLibraryItemsByReadingState(
   filter: LibraryReadingFilter,
 ): readonly LibraryItem[] {
   if (filter === "ALL") return items;
-  return items.filter(({ currentReadingState }) => currentReadingState.kind === filter);
+  return items.filter(({ readingHistory }) => {
+    switch (filter) {
+      case "PENDING":
+        return readingHistory.sessionCount === 0;
+      case "READING":
+        return readingHistory.readingCount > 0;
+      case "FINISHED":
+        return readingHistory.finishedCount > 0;
+      case "ABANDONED":
+        return readingHistory.abandonedCount > 0;
+    }
+
+    return filter satisfies never;
+  });
 }

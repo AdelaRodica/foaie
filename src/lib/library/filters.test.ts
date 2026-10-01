@@ -6,14 +6,17 @@ import {
   type LibraryReadingFilter,
 } from "./filters";
 import type { LibraryItem } from "./types";
-import type { CurrentReadingState, ReadingSession } from "../reading/types";
+import { deriveCurrentReadingState } from "../reading/current-state";
+import { deriveReadingHistorySummary } from "../reading/history";
+import type { ReadingSession, ReadingStatus } from "../reading/types";
 
 function createSession(
-  status: "READING" | "FINISHED" | "ABANDONED",
+  status: ReadingStatus,
   userEditionId: string,
+  index: number,
 ): ReadingSession {
   return {
-    id: `session-${userEditionId}`,
+    id: `session-${userEditionId}-${index}`,
     userEditionId,
     status,
     startedAt: "2026-09-30",
@@ -27,33 +30,17 @@ function createSession(
 
 function createItem(
   id: string,
-  kind: CurrentReadingState["kind"],
+  statuses: readonly ReadingStatus[],
 ): LibraryItem {
-  let currentReadingState: CurrentReadingState;
-
-  if (kind === "PENDING") {
-    currentReadingState = { kind, session: null };
-  } else if (kind === "READING") {
-    currentReadingState = {
-      kind,
-      session: { ...createSession(kind, id), status: kind },
-    };
-  } else if (kind === "FINISHED") {
-    currentReadingState = {
-      kind,
-      session: { ...createSession(kind, id), status: kind },
-    };
-  } else {
-    currentReadingState = {
-      kind,
-      session: { ...createSession(kind, id), status: kind },
-    };
-  }
+  const sessions = statuses.map((status, index) =>
+    createSession(status, id, index),
+  );
 
   return {
     id,
     addedAt: "2026-09-30T10:00:00.000Z",
-    currentReadingState,
+    currentReadingState: deriveCurrentReadingState(sessions),
+    readingHistory: deriveReadingHistorySummary(sessions),
     edition: {
       id: `edition-${id}`,
       format: "PHYSICAL",
@@ -83,10 +70,10 @@ describe("parseLibraryReadingFilter", () => {
 
 describe("filterLibraryItemsByReadingState", () => {
   const items = [
-    createItem("pending", "PENDING"),
-    createItem("reading", "READING"),
-    createItem("finished", "FINISHED"),
-    createItem("abandoned", "ABANDONED"),
+    createItem("pending", []),
+    createItem("reading", ["READING"]),
+    createItem("finished", ["FINISHED"]),
+    createItem("abandoned", ["ABANDONED"]),
   ];
 
   it("returns every item in its original order for ALL", () => {
@@ -108,5 +95,31 @@ describe("filterLibraryItemsByReadingState", () => {
     filterLibraryItemsByReadingState(items, "FINISHED");
 
     expect(items.map(({ id }) => id)).toEqual(originalIds);
+  });
+
+  it("includes one membership in both historical filters", () => {
+    const mixed = createItem("mixed", ["FINISHED", "ABANDONED"]);
+
+    expect(filterLibraryItemsByReadingState([mixed], "FINISHED")).toEqual([mixed]);
+    expect(filterLibraryItemsByReadingState([mixed], "ABANDONED")).toEqual([mixed]);
+  });
+
+  it("includes a rereading membership in active and finished filters", () => {
+    const rereading = createItem("rereading", ["FINISHED", "READING"]);
+
+    expect(filterLibraryItemsByReadingState([rereading], "FINISHED")).toEqual([
+      rereading,
+    ]);
+    expect(filterLibraryItemsByReadingState([rereading], "READING")).toEqual([
+      rereading,
+    ]);
+  });
+
+  it("returns a membership with two finished sessions only once", () => {
+    const reread = createItem("two-finished", ["FINISHED", "FINISHED"]);
+    const result = filterLibraryItemsByReadingState([reread], "FINISHED");
+
+    expect(reread.readingHistory.finishedCount).toBe(2);
+    expect(result).toEqual([reread]);
   });
 });

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { deriveCurrentReadingStatesByUserEdition } from "../../reading/current-state";
+import { deriveReadingHistorySummariesByUserEdition } from "../../reading/history";
 import { listReadingSessionsForUserEditions } from "../../reading/server/queries";
 import { LibraryError, mapLibraryReadError } from "../errors";
 import { mapLibraryItem } from "../mappers";
@@ -39,14 +40,19 @@ export async function listMyLibrary(): Promise<LibraryItem[]> {
   const userEditionIds = data.map(({ id }) => id);
   const sessions = await listReadingSessionsForUserEditions(userEditionIds);
   const states = deriveCurrentReadingStatesByUserEdition(userEditionIds, sessions);
+  const histories = deriveReadingHistorySummariesByUserEdition(
+    userEditionIds,
+    sessions,
+  );
 
   return data.map((row) => {
     const currentReadingState = states.get(row.id);
-    if (!currentReadingState) {
+    const readingHistory = histories.get(row.id);
+    if (!currentReadingState || !readingHistory) {
       throw new LibraryError("unexpected", { operation: "listMyLibrary" });
     }
 
-    return mapLibraryItem(row, currentReadingState);
+    return mapLibraryItem(row, currentReadingState, readingHistory);
   });
 }
 

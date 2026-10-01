@@ -1,5 +1,8 @@
 import { LibraryError } from "./errors";
-import type { CurrentReadingState } from "../reading/types";
+import type {
+  CurrentReadingState,
+  ReadingHistorySummary,
+} from "../reading/types";
 import type { LibraryItem } from "./types";
 
 type LibraryAuthorRelationRow = Readonly<{
@@ -32,6 +35,7 @@ export type LibraryItemRow = Readonly<{
 export function mapLibraryItem(
   row: LibraryItemRow,
   currentReadingState: CurrentReadingState,
+  readingHistory: ReadingHistorySummary,
 ): LibraryItem {
   const edition = row.edition;
   if (!edition) {
@@ -54,6 +58,7 @@ export function mapLibraryItem(
     id: row.id,
     addedAt: row.created_at,
     currentReadingState,
+    readingHistory,
     edition: {
       id: edition.id,
       format: edition.format,

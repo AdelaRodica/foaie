@@ -1,0 +1,103 @@
+.disclosure {
+  min-width: 0;
+  border-top: var(--border-width) solid var(--color-border);
+  padding-top: var(--space-3);
+}
+
+.disclosure summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-min-size);
+  color: var(--color-action);
+  cursor: pointer;
+  font-weight: var(--font-weight-semibold);
+}
+
+.disclosure summary:focus-visible {
+  border-radius: var(--radius-field);
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  padding-top: var(--space-4);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.field label {
+  font-weight: var(--font-weight-semibold);
+}
+
+.field input,
+.field select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-min-size);
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-field);
+  background: var(--color-canvas);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.field [aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.help,
+.fieldError,
+.error,
+.success {
+  margin: 0;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-relaxed);
+  overflow-wrap: anywhere;
+}
+
+.help {
+  color: var(--color-text-muted);
+}
+
+.fieldError,
+.error {
+  color: var(--color-danger);
+}
+
+.success {
+  color: var(--color-success);
+}
+
+.submit {
+  width: 100%;
+  min-height: var(--control-min-size);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width) solid var(--color-action);
+  border-radius: var(--radius-field);
+  background: var(--color-action);
+  color: var(--color-on-action);
+  cursor: pointer;
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+}
+
+.submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (min-width: 37.5rem) {
+  .submit {
+    width: auto;
+    justify-self: start;
+  }
+}

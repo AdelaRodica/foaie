@@ -79,6 +79,22 @@
   overflow-wrap: anywhere;
 }
 
+.readingState {
+  justify-self: start;
+  margin-top: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-subtle);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.progress {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
 @media (max-width: 22rem) {
   .link {
     grid-template-columns: minmax(4.5rem, 5.5rem) minmax(0, 1fr);

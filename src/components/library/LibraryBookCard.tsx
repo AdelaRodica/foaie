@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import type { LibraryItem } from "@/lib/library/types";
+import type { CurrentReadingState, ReadingProgressUnit } from "@/lib/reading/types";
 
 import { LibraryEditionControl } from "./LibraryEditionControl";
 import styles from "./LibraryBookCard.module.css";
@@ -11,10 +12,31 @@ const formatLabels: Readonly<Record<string, string>> = {
   AUDIOBOOK: "Audiolibro",
 };
 
+const readingStateLabels = {
+  PENDING: "Pendiente",
+  READING: "Leyendo",
+  FINISHED: "Leído",
+  ABANDONED: "Abandonado",
+} as const satisfies Readonly<Record<CurrentReadingState["kind"], string>>;
+
+function formatReadingProgress(value: number, unit: ReadingProgressUnit) {
+  switch (unit) {
+    case "PAGES":
+      return `${value} ${value === 1 ? "página" : "páginas"}`;
+    case "PERCENT":
+      return `${value} %`;
+    case "MINUTES":
+      return `${value} ${value === 1 ? "minuto" : "minutos"}`;
+  }
+
+  return unit satisfies never;
+}
+
 export function LibraryBookCard({ item }: Readonly<{ item: LibraryItem }>) {
   const { edition } = item;
   const { work } = edition;
   const formatLabel = formatLabels[edition.format] ?? "Formato no especificado";
+  const { currentReadingState } = item;
 
   return (
     <article className={styles.card}>
@@ -38,6 +60,17 @@ export function LibraryBookCard({ item }: Readonly<{ item: LibraryItem }>) {
           <span className={styles.title}>{work.title}</span>
           {work.authors.length > 0 ? (
             <span className={styles.authors}>{work.authors.join(", ")}</span>
+          ) : null}
+          <span className={styles.readingState}>
+            {readingStateLabels[currentReadingState.kind]}
+          </span>
+          {currentReadingState.kind === "READING" ? (
+            <span className={styles.progress}>
+              {formatReadingProgress(
+                currentReadingState.session.currentValue,
+                currentReadingState.session.progressUnit,
+              )}
+            </span>
           ) : null}
         </span>
       </Link>

@@ -10,6 +10,7 @@ import {
   abandonReadingAction,
   finishReadingAction,
 } from "@/lib/reading/actions";
+import { getLocalCivilDate } from "@/lib/reading/local-civil-date";
 
 import styles from "./ReadingControls.module.css";
 import { ReadingSubmitButton } from "./ReadingSubmitButton";
@@ -21,14 +22,6 @@ type ReadingTerminalFormProps = Readonly<{
 
 function fieldErrors(state: ReadingActionState, field: string) {
   return state.status === "error" ? state.fieldErrors?.[field] : undefined;
-}
-
-function localCivilDateToday() {
-  const today = new Date();
-  const year = String(today.getFullYear()).padStart(4, "0");
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
 }
 
 export function ReadingTerminalForm({
@@ -47,7 +40,7 @@ export function ReadingTerminalForm({
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      setTerminalDate(localCivilDateToday());
+      setTerminalDate(getLocalCivilDate(new Date()));
     });
 
     return () => window.cancelAnimationFrame(frame);

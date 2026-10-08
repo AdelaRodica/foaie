@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useId } from "react";
+import { useActionState, useEffect, useId, useState } from "react";
 
 import {
   INITIAL_READING_ACTION_STATE,
   type ReadingActionState,
 } from "@/lib/reading/action-result";
 import { startReadingAction } from "@/lib/reading/actions";
+import { getLocalCivilDate } from "@/lib/reading/local-civil-date";
 
 import styles from "./ReadingControls.module.css";
 import { ReadingSubmitButton } from "./ReadingSubmitButton";
@@ -29,6 +30,16 @@ export function ReadingStartForm({
     INITIAL_READING_ACTION_STATE,
   );
   const id = useId();
+  const [startedAt, setStartedAt] = useState("");
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setStartedAt(getLocalCivilDate(new Date()));
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
   const startedAtErrors = fieldErrors(state, "startedAt");
   const progressUnitErrors = fieldErrors(state, "progressUnit");
   const currentValueErrors = fieldErrors(state, "currentValue");
@@ -57,6 +68,8 @@ export function ReadingStartForm({
             name="startedAt"
             type="date"
             required
+            value={startedAt}
+            onChange={(event) => setStartedAt(event.target.value)}
             aria-invalid={Boolean(startedAtErrors)}
             aria-describedby={startedAtErrors ? startedAtErrorId : undefined}
           />

@@ -7,6 +7,7 @@ import {
   type ReadingActionState,
 } from "@/lib/reading/action-result";
 import { recordReadingProgressAction } from "@/lib/reading/actions";
+import { getLocalCivilDate } from "@/lib/reading/local-civil-date";
 import type { ReadingProgressUnit } from "@/lib/reading/types";
 
 import styles from "./ReadingControls.module.css";
@@ -35,14 +36,6 @@ function progressUnitHelp(progressUnit: ReadingProgressUnit) {
   return progressUnit satisfies never;
 }
 
-function localCivilDateToday() {
-  const today = new Date();
-  const year = String(today.getFullYear()).padStart(4, "0");
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 export function ReadingProgressForm({
   sessionId,
   progressUnit,
@@ -58,7 +51,7 @@ export function ReadingProgressForm({
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      setOccurredOn(localCivilDateToday());
+      setOccurredOn(getLocalCivilDate(new Date()));
     });
 
     return () => window.cancelAnimationFrame(frame);

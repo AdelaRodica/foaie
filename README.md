@@ -83,7 +83,7 @@ Las decisiones técnicas completas se encuentran en [docs/product-spec.md](docs/
 
 ## Estado actual
 
-Foaie ha completado la base visual navegable y la base de datos y acceso privado. La aplicación ya funciona como sistema multiusuario privado por defecto.
+Foaie ha completado la base visual, el acceso privado, el catálogo manual, la Biblioteca personal y la Etapa 5 de lecturas y progreso. La aplicación funciona como sistema multiusuario privado por defecto.
 
 Actualmente están implementados:
 
@@ -92,7 +92,15 @@ Actualmente están implementados:
 - `public.profiles` enlazado uno a uno con `auth.users`.
 - Preferencias iniciales de nombre visible y zona horaria IANA.
 - Row-Level Security y pruebas de aislamiento entre cuentas.
+- Catálogo compartido de obras y ediciones con alta y edición manual.
+- Biblioteca personal con pertenencias privadas y filtros de lectura.
+- Inicio y relectura como sesiones independientes, con fecha local editable.
+- Registro y corrección atómicos del progreso, además de cierre y abandono conservando el historial.
+- Filtros históricos que permiten localizar una misma pertenencia por sus sesiones terminadas y abandonadas.
+- Protección del borrado normal de una pertenencia cuando conserva historial de lectura.
 - Migraciones SQL versionadas y sincronizadas con el proyecto remoto de desarrollo.
+
+La Etapa 5 — Lecturas y progreso está completada. Las etapas de objetivos y continuidad lectora, Inicio, Mi álbum, importación y estadísticas continúan pendientes.
 
 ## En desarrollo
 
@@ -113,12 +121,16 @@ src/
   components/
     auth/
     layout/
+    library/
     profile/
+    reading/
     ui/
   lib/
     auth/
     db/
+    library/
     profile/
+    reading/
     supabase/
   styles/
     tokens.css
@@ -153,18 +165,19 @@ La configuración local reside en `.env.local`, que nunca debe versionarse. `.en
 
 ## Hoja de ruta
 
-1. Decisiones de producto y prototipo de baja fidelidad.
-2. Preparación de Git, GitHub y documentación inicial.
-3. Base visual navegable y responsive.
-4. Base de datos, autenticación y aislamiento multiusuario.
-5. Catálogo manual de libros.
-6. Biblioteca.
-7. Lecturas y progreso.
-8. Dashboard.
-9. Diario mensual.
-10. Importación opcional por API.
-11. Estadísticas del MVP.
-12. Exportación, seguridad, accesibilidad y calidad.
+1. ✅ Decisiones de producto y prototipo de baja fidelidad.
+2. ✅ Preparación de Git, GitHub y documentación inicial.
+3. ✅ Base visual navegable y responsive.
+4. ✅ Base de datos, autenticación y aislamiento multiusuario.
+5. ✅ Catálogo manual de libros.
+6. ✅ Biblioteca.
+7. ✅ Etapa 5 — Lecturas y progreso.
+8. Etapa 5.5 — Objetivos y continuidad lectora.
+9. Etapa 6 — Inicio.
+10. Etapa 7 — Mi álbum.
+11. Etapa 8 — Importación opcional por API.
+12. Etapa 9 — Estadísticas del MVP.
+13. Etapa 10 — Exportación, seguridad, accesibilidad y calidad.
 
 ## Licencia
 

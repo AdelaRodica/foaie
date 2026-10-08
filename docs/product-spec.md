@@ -2,7 +2,7 @@
 
 **Versión:** 1.0  
 **Fecha:** 4 de agosto de 2026  
-**Estado:** lista para diseño y desarrollo; no incluye implementación  
+**Estado:** especificación viva; incorpora decisiones de producto y decisiones técnicas ya implementadas
 **Nombre oficial:** Foaie  
 **Descriptor:** **Foaie — Tu diario visual de lectura**  
 **Tipo de producto:** aplicación web multiusuario y privada por defecto en el MVP, preparada para evolucionar a una PWA en una fase posterior
@@ -892,7 +892,7 @@ Foaie comenzará como un **monolito modular**: una aplicación Next.js y una bas
 - No concatenar frases; usar `Intl` para fechas, números y plurales.
 - Al configurar la cuenta, intentar obtener del dispositivo o navegador un identificador de zona horaria IANA, como `Europe/Madrid`, `Europe/Bucharest` o `America/Bogota`; validarlo siempre en el servidor y no almacenar únicamente offsets fijos como `UTC+2`.
 - Guardar la zona IANA en `profiles.timezone`, además del locale e idioma del perfil. Si no puede determinarse una zona válida, usar `UTC` como fallback técnico y permitir cambiarla posteriormente en Ajustes.
-- Al registrar progreso, convertir `recorded_at` con la zona vigente para obtener `activity_date`. Un cambio posterior de `profiles.timezone` se aplica a actividades nuevas y no recalcula silenciosamente fechas civiles históricas ni mueve actividad entre días. No se guarda por ahora una copia de la zona en cada entrada; se reconsiderará solo si se necesita reconstruir la hora local histórica exacta.
+- Las entradas de progreso conservan `occurred_on` como fecha civil `YYYY-MM-DD`, elegida en la interfaz y validada por el servidor. Un cambio posterior de `profiles.timezone` no recalcula silenciosamente esas fechas históricas ni mueve actividad entre días. La futura Etapa 5.5 derivará la actividad lectora de estos datos sin alterar las sesiones existentes.
 - Códigos BCP 47/ISO para idiomas y países; texto Unicode en toda la cadena.
 - Diseño preparado para textos más largos y futura dirección RTL, aunque no se implemente en el MVP.
 - Rumano e inglés son candidatos naturales posteriores por identidad y alcance.
@@ -1063,6 +1063,8 @@ RLS permitirá a `authenticated` seleccionar, insertar y eliminar únicamente su
 
 `user_editions` representa pertenencia a Biblioteca; cada `reading_sessions` representa una lectura o relectura concreta de esa pertenencia. Una relación `user_edition` admite de cero a muchas sesiones. Una pertenencia sin sesiones está **Pendiente**: `PLANNED` no es un estado persistido del núcleo. Una futura planificación explícita de relecturas queda fuera de este alcance.
 
+PENDING es un estado derivado y no se persiste. READING, FINISHED y ABANDONED son estados de una `reading_session`. Iniciar o releer crea una sesión READING nueva; terminar o abandonar cierra únicamente esa sesión. Una sesión cerrada no se reabre y cada lectura o relectura permanece como experiencia independiente.
+
 | Campo | Tipo | Reglas |
 |---|---|---|
 | `id` | uuid | PK, default `gen_random_uuid()` |
@@ -1079,37 +1081,41 @@ Los estados y fechas mantienen estas invariantes: READING exige `started_at` y a
 
 La base de datos garantiza como máximo una sesión activa mediante un índice UNIQUE parcial sobre (`user_edition_id`) `WHERE status = 'READING'`; el mensaje de aplicación no sustituye esta protección frente a concurrencia. Una sesión FINISHED o ABANDONED nunca vuelve a READING. Cada relectura crea una fila nueva: por ejemplo, M1 puede tener S1 READING→FINISHED y, meses después, S2 READING→FINISHED.
 
+La aplicación separa `currentReadingState`, que representa el estado operativo y determina badge y controles, de `readingHistory`, que resume todas las sesiones y sus recuentos históricos. Una sesión posterior no sustituye ni elimina las anteriores.
+
 No se almacena `sequence_number`. El historial se ordena de forma determinista por `started_at DESC NULLS LAST`, `created_at DESC`, `id DESC`; si la interfaz necesita «Primera lectura» o «Segunda lectura», deriva el ordinal del historial ordenado. Esto evita `max(sequence)+1`, carreras de concurrencia y una transacción o RPC innecesaria al iniciar. Tampoco se incorpora `updated_at` al núcleo inicial: las fechas semánticas, `created_at` y el futuro historial de progreso cubren las necesidades aprobadas; podrá añadirse si aparece una necesidad real y un mecanismo canónico para mantenerlo.
 
 `current_value` puede disminuir para corregir errores humanos; no existe una restricción de monotonía. PERCENT exige además `current_value <= 100`. Como guía, PHYSICAL o EBOOK con páginas fiables usa PAGES, EBOOK sin páginas fiables usa PERCENT y AUDIOBOOK usa MINUTES; si no existe longitud fiable se usa PERCENT. No se almacenan a la vez un valor absoluto y un porcentaje derivable. `progress_unit` se fija al crear la sesión y las actualizaciones ordinarias solo cambian `current_value`; una relectura nueva puede escoger otra unidad.
 
 Finalizar conserva `current_value` y `progress_unit`, registra `finished_at` y no fuerza automáticamente 100 %, `page_count` ni `audio_duration_minutes`. Abandonar registra `abandoned_at` y conserva progreso e historia; no convierte la sesión en FINISHED ni borra avances.
 
-`reading_sessions` no duplica `user_id`: la propiedad se deriva mediante `user_edition_id → user_editions.user_id`. Las políticas RLS de SELECT, INSERT, UPDATE y DELETE comprobarán conceptualmente un `EXISTS` sobre `public.user_editions` donde la relación pertenezca a `(select auth.uid())`, sin `SECURITY DEFINER`, `service_role` ni bypass. PUBLIC y `anon` no reciben privilegios; `authenticated` recibe únicamente los necesarios para cada operación cuando se implemente. Nunca se permite escritura directa de `id`, `created_at` ni de `user_edition_id` después del INSERT.
+Las fechas semánticas son fechas civiles `YYYY-MM-DD`. En la interfaz de iniciar, releer, actualizar progreso, terminar y abandonar, la fecha local del navegador aparece por defecto y permanece editable.
 
-Quitar una pertenencia sin sesiones sigue siendo una operación cotidiana válida. Si existe cualquier `reading_session`, el DELETE normal de `user_editions` queda bloqueado por RLS/policy para no borrar historia silenciosamente. La FK `reading_sessions.user_edition_id → user_editions.id ON DELETE CASCADE` se conserva para el cleanup integral de una cuenta o perfil. Un flujo destructivo explícito «eliminar historial y quitar» queda como decisión futura.
+`reading_sessions` no duplica `user_id`: la propiedad se deriva mediante `user_edition_id → user_editions.user_id`. El flujo normal usa un cliente `authenticated`, obtiene la identidad de `auth.uid()` y mantiene RLS como autoridad; no utiliza `service_role`. PUBLIC y `anon` no reciben privilegios, y `authenticated` recibe únicamente los necesarios para cada operación. Nunca se permite escritura directa de `id`, `created_at` ni de `user_edition_id` después del INSERT.
 
-Los filtros de Biblioteca son mutuamente excluyentes: `Todos` incluye todas las pertenencias; `Pendientes`, las que tienen cero sesiones; `Leyendo`, las que tienen una sesión READING; `Leídos`, las que no tienen READING y cuya última sesión cerrada es FINISHED; `Abandonados`, las que no tienen READING y cuya última sesión cerrada es ABANDONED. La última sesión usa el mismo orden determinista `started_at DESC NULLS LAST`, `created_at DESC`, `id DESC`. Así, una lectura terminada antigua sin otra nueva aparece en Leídos; con una relectura activa, en Leyendo; con una relectura abandonada posterior, en Abandonados; y varias FINISHED sin activa permanecen en Leídos. Cada pertenencia aparece en `Todos` y exactamente uno de los cuatro estados.
+Stage 5 usa exactamente dos funciones `SECURITY DEFINER` deliberadas: `private.can_remove_user_edition(uuid)`, que evita recursión al proteger el borrado de memberships con historial, y `public.record_reading_progress(...)`, que aplica atómicamente el progreso. Ambas fijan `search_path = ''`, comprueban ownership mediante `auth.uid()`, revocan privilegios por defecto y conceden únicamente los grants explícitos mínimos; no constituyen un bypass general de RLS. Como verificación adicional de hardening en el proyecto remoto, `has_schema_privilege('anon', 'public', 'CREATE')` y `has_schema_privilege('authenticated', 'public', 'CREATE')` devolvieron `false`.
+
+Quitar una pertenencia sin sesiones sigue siendo una operación cotidiana válida. Si existe cualquier `reading_session`, el DELETE normal de `user_editions` queda bloqueado por RLS/policy para no borrar historia silenciosamente y la aplicación devuelve el error de dominio `protected_history`. La FK `reading_sessions.user_edition_id → user_editions.id ON DELETE CASCADE` se conserva para el cleanup integral de una cuenta o perfil. Un flujo destructivo explícito «eliminar historial y quitar» queda como decisión futura.
+
+Los filtros de Biblioteca combinan estado operativo e historial: `Todos` incluye todas las memberships; `Pendientes`, las que tienen cero sesiones; `Leyendo`, las que tienen al menos una sesión READING; `Leídos`, las que tienen al menos una sesión FINISHED; y `Abandonados`, las que tienen al menos una sesión ABANDONED. Una misma membership puede aparecer en Leídos y Abandonados si conserva sesiones históricas de ambos tipos, pero se muestra una única card dentro de cada filtro.
 
 ### `progress_entries` (Etapa 5; posterior a `reading_sessions`)
 
-Cada actualización de progreso conserva una entrada histórica; `reading_sessions.current_value` es el snapshot actual y nunca sustituye ni sobrescribe este historial. Esta tabla se incorpora después de la primera migración de `reading_sessions`. Al implementar la actualización de progreso, el snapshot y su entrada histórica deberán escribirse atómicamente, probablemente mediante una operación transaccional/RPC cuya forma concreta se diseñará entonces.
+Cada actualización de progreso conserva una entrada histórica; `reading_sessions.current_value` es el snapshot actual y nunca sustituye ni sobrescribe este historial. El RPC `public.record_reading_progress(...)` bloquea la sesión, valida la operación, inserta la `progress_entry` y actualiza `current_value` atómicamente. El cliente no modifica directamente el snapshot.
 
 | Campo | Tipo | Reglas |
 |---|---|---|
 | `id` | uuid | PK |
 | `reading_session_id` | uuid | FK, NN |
-| `entry_kind` | enum | NN: PROGRESS/CORRECTION |
-| `recorded_at` | timestamptz | NN; momento atribuido a la actividad |
-| `activity_date` | date | NN; fecha civil calculada con la zona IANA vigente al registrar y conservada históricamente |
-| `value` | integer | NN; valor acumulado alcanzado, no delta |
-| `unit` | enum | NN: PAGES/PERCENT/MINUTES |
-| `note` | varchar(500) | Opcional |
-| `created_at`, `updated_at` | timestamptz | NN; `created_at` es el momento técnico de creación en Foaie |
+| `kind` | text | NN; CHECK PROGRESS/CORRECTION |
+| `previous_value` | integer | NN, CHECK `>= 0`; snapshot anterior |
+| `new_value` | integer | NN, CHECK `>= 0`; nuevo snapshot acumulado |
+| `occurred_on` | date | NN; fecha civil atribuida al cambio |
+| `created_at` | timestamptz | NN; momento técnico de creación en Foaie |
 
-`PROGRESS` representa lectura real; `CORRECTION` corrige administrativamente un valor anterior, modifica la secuencia efectiva y no genera por sí misma actividad lectora, racha ni páginas leídas del día. Una entrada contribuye como actividad cuando `entry_kind = PROGRESS` y su diferencia respecto al valor efectivo anterior es positiva. La comparación se realiza dentro de la misma `reading_session` y una unidad compatible, con orden determinista por `recorded_at`, `created_at` e `id`. La primera entrada positiva se compara con cero. La unidad coincide con la unidad inmutable de la sesión; no se comparan páginas, porcentaje y minutos entre sí.
+`PROGRESS` exige `new_value > previous_value`; `CORRECTION` exige `new_value != previous_value`. En la UI del MVP, un aumento produce PROGRESS y una reducción produce CORRECTION. La comparación ocurre dentro de la misma `reading_session`; la unidad permanece en la sesión y no se mezclan páginas, porcentaje y minutos.
 
-No es obligatorio crear artificialmente una entrada al finalizar. Los días de lectura resultan de unir las fechas de `PROGRESS` positivo con `finished_at` de sesiones finalizadas válidas y aplicar `DISTINCT` por usuario propietario y fecha civil. Así, progreso y finalización en una misma jornada cuentan una vez. Las sesiones cerradas no se reabren; una relectura crea otra sesión y los progresos históricos de la anterior permanecen intactos. No se crea `reading_progress_events`: `progress_entries` es el historial fuente.
+No es obligatorio crear artificialmente una entrada al iniciar o finalizar. El valor inicial de START/REREAD fija el punto de partida sin crear una `progress_entry`. Las sesiones cerradas no se reabren; una relectura crea otra sesión y los progresos históricos de la anterior permanecen intactos. No se crea `reading_progress_events`: `progress_entries` es el historial fuente.
 
 ## 8.4 Organización y recuerdos
 
@@ -1548,16 +1554,16 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 
 **Git:** rama `feature/library`; commits separados para la relación privada, acceso server-only, acciones, consulta, controles desde catálogo y listado real; mensaje final sugerido `feat: render personal library`; `push` después de cada commit estable; fusionar cuando añadir, quitar, listar, estado vacío, navegación al catálogo, privacidad/RLS, accesibilidad y responsive estén probados.
 
-### Etapa 5 — Lecturas y progreso
+### ✅ Etapa 5 — Lecturas y progreso (completada)
 
 **Objetivo:** completar el núcleo del diario con sesiones, progreso e historial fiables.
-**Tareas:** iniciar, terminar y abandonar sesiones; crear relecturas como sesiones nuevas; conservar cada actualización como `progress_entry` sin sustituirla por `current_value`; distinguir progreso real de correcciones; calcular y preservar `activity_date` desde `recorded_at` y la zona IANA vigente; exponer estado actual, historial y filtros reales de Biblioteca.<br>
-**Módulos:** `components/readings`, servicios, ficha.  
+**Tareas completadas:** iniciar, terminar y abandonar sesiones; crear relecturas como sesiones nuevas; conservar cada actualización como `progress_entry` sin sustituirla por `current_value`; distinguir progreso real de correcciones; usar fechas civiles locales editables; exponer estado actual, historial y filtros reales de Biblioteca.<br>
+**Módulos:** `src/components/reading`, `src/lib/reading`, integración en `src/components/library` y `/biblioteca`.
 **Dependencias:** Etapa 4.  
 **Resultado:** ciclo de lectura y progreso completo, sin mezclar pertenencia a Biblioteca con estado de lectura.
 **Contenido reflexivo:** rating, reseña, citas, cita destacada y recuerdo reflexivo se decidirán en una ampliación posterior dentro de la Etapa 5. No forman parte de la primera migración ni bloquean sesiones, progreso, filtros o relecturas.<br>
-**Subdivisión prevista:** 5A diseño y documentación; 5B `reading_sessions` + RLS; 5C aplicación remota + suite A/B; 5D tipos + acceso server-only; 5E acciones de ciclo start/finish/abandon; 5F `progress_entries` + actualización atómica; 5G consultas + DTOs de estado actual; 5H UI de estado/progreso; 5I filtros reales de Biblioteca; 5J historial/relecturas; 5K contenido reflexivo solo si continúa dentro del alcance; 5L QA y cierre. Es una guía incremental y puede ajustarse si aparece una dependencia real.<br>
-**Terminada cuando:** estados y fechas permanecen consistentes, cada actualización conserva atómicamente su evento histórico y snapshot, correcciones y unidades incompatibles no generan falsos días de lectura, una relectura no sobrescribe historia, los filtros son mutuamente excluyentes y el E2E crítico pasa. El contenido reflexivo no bloquea este cierre si se aplaza explícitamente.
+**Entrega completada:** `reading_sessions` + RLS; aplicación remota y suites de aislamiento; tipos y acceso server-only; acciones de ciclo start/finish/abandon; `progress_entries` + actualización atómica; consultas y DTOs de estado actual e historial; UI de estado/progreso; filtros históricos; relecturas; QA y cierre documental. El contenido reflexivo permanece aplazado y no bloquea este cierre.<br>
+**Cierre verificado:** estados y fechas consistentes, actualización atómica de evento y snapshot, relecturas independientes, filtros históricos, autorización, QA manual, 24/24 archivos de tests y 299/299 tests. Las 13 migraciones locales y remotas están sincronizadas y no existen migraciones pendientes.
 
 **Git:** rama `feature/reading-progress`; commits separados por las subfases anteriores cuando facilite la revisión; mensaje final sugerido `feat: implement reading progress tracking`; `push` tras cada flujo estable; fusionar cuando el E2E iniciar→actualizar→terminar pase y relectura, abandono, fechas y autorización estén verificados.
 

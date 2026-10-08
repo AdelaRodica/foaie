@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      annual_reading_goals: {
+        Row: {
+          created_at: string
+          id: string
+          target_count: number
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          target_count: number
+          updated_at?: string
+          user_id?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          target_count?: number
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "annual_reading_goals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       authors: {
         Row: {
           created_at: string

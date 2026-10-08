@@ -95,6 +95,13 @@
   font-size: var(--font-size-small);
 }
 
+.historyContext {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-relaxed);
+  overflow-wrap: anywhere;
+}
+
 .historyNotice {
   margin: var(--space-2) 0 0;
   color: var(--color-text-muted);

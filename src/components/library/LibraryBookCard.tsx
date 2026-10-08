@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import type { LibraryItem } from "@/lib/library/types";
+import type { LibraryReadingFilter } from "@/lib/library/filters";
 import type { CurrentReadingState, ReadingProgressUnit } from "@/lib/reading/types";
 import { ReadingProgressForm } from "@/components/reading/ReadingProgressForm";
 import { ReadingStartForm } from "@/components/reading/ReadingStartForm";
@@ -63,11 +64,27 @@ function renderReadingControls(
   return state satisfies never;
 }
 
-export function LibraryBookCard({ item }: Readonly<{ item: LibraryItem }>) {
+type LibraryBookCardProps = Readonly<{
+  item: LibraryItem;
+  readingFilter: LibraryReadingFilter;
+}>;
+
+export function LibraryBookCard({ item, readingFilter }: LibraryBookCardProps) {
   const { edition } = item;
   const { work } = edition;
   const formatLabel = formatLabels[edition.format] ?? "Formato no especificado";
   const { currentReadingState } = item;
+  const finishedCount = item.readingHistory.finishedCount;
+  const abandonedCount = item.readingHistory.abandonedCount;
+  const historyContext = readingFilter === "FINISHED" && finishedCount > 0
+    ? `En tu historial: ${finishedCount} ${
+      finishedCount === 1 ? "lectura terminada" : "lecturas terminadas"
+    }`
+    : readingFilter === "ABANDONED" && abandonedCount > 0
+      ? `En tu historial: ${abandonedCount} ${
+        abandonedCount === 1 ? "lectura abandonada" : "lecturas abandonadas"
+      }`
+      : null;
 
   return (
     <article className={styles.card}>
@@ -95,6 +112,9 @@ export function LibraryBookCard({ item }: Readonly<{ item: LibraryItem }>) {
           <span className={styles.readingState}>
             {readingStateLabels[currentReadingState.kind]}
           </span>
+          {historyContext ? (
+            <span className={styles.historyContext}>{historyContext}</span>
+          ) : null}
           {currentReadingState.kind === "READING" ? (
             <span className={styles.progress}>
               {formatReadingProgress(

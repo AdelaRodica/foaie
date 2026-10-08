@@ -97,7 +97,7 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
             <ul className={styles.grid}>
               {filteredItems.map((item) => (
                 <li key={item.id}>
-                  <LibraryBookCard item={item} />
+                  <LibraryBookCard item={item} readingFilter={activeFilter} />
                 </li>
               ))}
             </ul>

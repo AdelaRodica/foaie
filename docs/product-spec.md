@@ -177,8 +177,8 @@ Para uso personal, importan más la utilidad y consistencia que el crecimiento:
 
 | Nivel | Incluye | Se excluye deliberadamente |
 |---|---|---|
-| **MVP** | Acceso privado; CRUD de libros/ediciones; importación opcional por búsqueda/ISBN con edición manual; portada; biblioteca; filtros básicos; lecturas y relecturas; progreso; valoración con medias estrellas; reseña/notas/citas; recuerdo reflexivo opcional; Inicio simple; Mi álbum anual con capítulos mensuales y páginas lógicas; Reto lector anual opcional de libros terminados; Racha de lectura semanal; tema claro/oscuro; exportación JSON/CSV | Social, recomendaciones, mapa, logros, Wrapped, estadísticas complejas |
-| **V2** | Colecciones personalizadas; objetivos por páginas, audio u otros criterios; ritmos configurables para la Racha de lectura; estadísticas ampliadas; calendario; historial de actividad; importación masiva; PWA; copia/restauración; tarjetas compartibles; ficha de autores y sagas; animaciones editoriales, spreads, personalización y exportación visual de Mi álbum | Algoritmo de recomendaciones avanzado |
+| **MVP** | Acceso privado; CRUD de libros/ediciones; importación opcional por búsqueda/ISBN con edición manual; portada; biblioteca; filtros básicos; lecturas y relecturas; progreso; valoración con medias estrellas; reseña/notas/citas; recuerdo reflexivo opcional; Inicio simple; Mi álbum anual con capítulos mensuales y páginas lógicas; Reto lector anual opcional de libros terminados; Racha de lectura semanal con objetivo configurable de 1 a 7 días; tema claro/oscuro; exportación JSON/CSV | Social, recomendaciones, mapa, logros, Wrapped, estadísticas complejas |
+| **V2** | Colecciones personalizadas; objetivos por páginas, audio u otros criterios; estadísticas ampliadas; calendario; historial de actividad; importación masiva; PWA; copia/restauración; tarjetas compartibles; ficha de autores y sagas; animaciones editoriales, spreads, personalización y exportación visual de Mi álbum | Algoritmo de recomendaciones avanzado |
 | **Futuro** | Wrapped anual; logros opt-in; selector aleatorio; mapa; emociones; recomendaciones; OCR de ISBN; importadores de terceros; funciones sociales opcionales | Comercio o lectura de ebooks dentro de la app |
 
 ## 2.2 Lista cerrada del MVP
@@ -200,13 +200,13 @@ El MVP queda limitado a estas **20 capacidades**:
 13. Consultar biblioteca en cuadrícula y lista.
 14. Buscar y filtrar por estado, formato, género, valoración y año leído.
 15. Crear y editar un **Reto lector** anual opcional de libros terminados, como máximo uno por usuario y año, cuyo progreso real deriva de `reading_sessions` terminadas, cuenta las relecturas como sesiones independientes, puede superar la meta y se recalcula ante cambios retroactivos.
-16. Consultar la **Racha de lectura** semanal actual y la mejor racha, derivadas de actividad lectora registrada y presentadas sin castigos, urgencia ni pérdida de recompensas.
+16. Configurar entre 1 y 7 días de lectura por semana y consultar la **Racha de lectura** semanal actual, el progreso de la semana en curso y la mejor racha, derivados de actividad lectora registrada y presentados sin castigos, urgencia ni pérdida de recompensas.
 17. Ver Inicio con lectura actual, acceso rápido, Reto lector, Racha de lectura y cifras del mes/año.
 18. Recorrer **Mi álbum** por años y meses: sesiones terminadas como cromos paginados de forma lógica y estable, con portada, datos de sesión, relecturas identificadas, cita destacada opcional, resumen mensual, favorito del mes y cierre anual básico con resultado del reto y mejor racha correspondiente.
 19. Cambiar entre modo claro, oscuro y sistema.
 20. Exportar los datos propios en JSON y las lecturas en CSV.
 
-**Fuera del MVP:** colecciones, objetivos distintos de libros terminados, ritmos configurables o diarios para la Racha de lectura, check-ins manuales, gráficos avanzados, calendario, estadísticas de países, recomendaciones, logros, Wrapped, PWA offline, importación masiva y, para Mi álbum, animación de pegado, paso de página animado, celebración al completar una página, spreads, personalización, reordenación manual y exportación visual.
+**Fuera del MVP:** colecciones, objetivos distintos de libros terminados, check-ins manuales, gráficos avanzados, calendario, estadísticas de países, recomendaciones, logros, Wrapped, PWA offline, importación masiva y, para Mi álbum, animación de pegado, paso de página animado, celebración al completar una página, spreads, personalización, reordenación manual y exportación visual.
 
 ## 2.3 Límites del MVP multiusuario y privado
 
@@ -282,7 +282,7 @@ Aplicación
 ├── Estadísticas
 │   ├── Resumen (MVP mínimo)
 │   ├── Reto lector e histórico
-│   ├── Racha de lectura y semanas activas
+│   ├── Racha de lectura y semanas cumplidas
 │   └── Explorador (V2)
 └── Configuración
     ├── Perfil y preferencias
@@ -463,7 +463,7 @@ Cada año es un álbum; los meses son capítulos; una página lógica es un frag
 
 **Objetivo:** responder preguntas, no decorar con gráficas.
 
-**MVP:** selector de periodo; libros, páginas, audio, media; barras de lecturas por mes; formatos y géneros; configuración y análisis del Reto lector; histórico de retos; Racha de lectura actual, mejor racha y semanas activas. Cada gráfico incluye título, definición, leyenda, alternativa tabular accesible y enlace a los registros de origen.
+**MVP:** selector de periodo; libros, páginas, audio, media; barras de lecturas por mes; formatos y géneros; configuración y análisis del Reto lector; histórico de retos; Racha de lectura actual, mejor racha y semanas cumplidas. Cada gráfico incluye título, definición, leyenda, alternativa tabular accesible y enlace a los registros de origen.
 
 **V2:** valoraciones, autores, editoriales, idiomas, abandonos, relecturas, sagas, duración, comparación anual y calendario de actividad.
 
@@ -479,17 +479,21 @@ Cada año es un álbum; los meses son capítulos; una página lógica es un frag
 
 **Reto lector MVP:** como máximo un objetivo opcional por usuario y año, limitado a sesiones terminadas. Puede crearse, editarse y eliminarse. Cuenta cada `reading_session` `FINISHED` cuyo `finished_at` pertenece al año natural del objetivo: las relecturas y las sesiones sobre distintas ediciones cuentan como experiencias independientes; `ABANDONED` no cuenta; y `FINISHED` sí cuenta aunque el progreso final sea inferior al 100 %. Muestra meta, sesiones terminadas, porcentaje y diferencia respecto al objetivo. Superar la meta conserva el valor real: si el progreso es 7 y `target_count` cambia de 12 a 5, muestra `7 / 5` y el objetivo como superado. `current_count` siempre se deriva de las sesiones y no se persiste.
 
-**Racha de lectura MVP:** una semana, de lunes a domingo, es activa cuando contiene al menos un día con actividad lectora válida. La racha actual es el número de semanas activas consecutivas y la mejor racha es su máximo histórico. Si la semana anterior fue activa y la actual sigue abierta pero todavía no tiene actividad, la racha continúa viva; solo se rompe al terminar una semana completa sin actividad.
+**Racha de lectura MVP:** cada perfil configura `reading_days_per_week`, un objetivo de 1 a 7 días civiles distintos de lectura por semana. Una semana, siempre de lunes a domingo para la Racha de lectura MVP, se considera cumplida cuando sus días distintos con actividad lectora válida alcanzan o superan ese objetivo. La actividad adicional no hace que una misma semana cuente más de una vez. La racha actual es el número de semanas cumplidas consecutivas y la mejor racha es su máximo histórico.
 
-Cuenta como actividad un `progress_entry` `PROGRESS` positivo, atribuido a `occurred_on`, o la finalización `FINISH` de una `reading_session`, atribuida a `finished_at`. `START`, incluso con valor inicial, `CORRECTION` y `ABANDON` no cuentan. Varias actividades válidas en una misma fecha civil cuentan como un único día. Un registro creado hoy para una fecha anterior se atribuye a la fecha civil indicada y puede reconstruir la racha histórica. No cuentan abrir Foaie, consultar una ficha, editar metadatos, guardar una nota o cita ni realizar tareas administrativas. La racha representa actividad registrada en Foaie, no todos los días en que la persona pudo leer. El MVP no incorpora check-ins manuales de “he leído hoy”.
+La semana actual permanece abierta: mientras lleve menos días activos que `reading_days_per_week`, todavía no suma, pero tampoco rompe la continuidad de las semanas anteriores cumplidas. En cuanto alcanza el objetivo, suma una semana. Una semana anterior ya cerrada que no alcanzó el objetivo es un gap y rompe la continuidad.
 
-**Principio de UX:** “La racha celebra la constancia; no penaliza la ausencia”. No hay avisos de pérdida, cuentas atrás, recompensas que desaparezcan, presión para abrir la aplicación ni notificaciones manipulativas. Puede mostrarse `Racha de lectura — 6 semanas leyendo` y `Mejor racha — 8 semanas`. Si una racha termina, el lenguaje es neutral: “Tu mejor racha: 8 semanas. Empieza una nueva cuando vuelvas a leer”.
+Cuenta como actividad un `progress_entry` `PROGRESS` positivo, atribuido a `occurred_on`, o la finalización `FINISH` de una `reading_session`, atribuida a `finished_at`. `START`, incluso con valor inicial, `CORRECTION` y `ABANDON` no cuentan. Varias actividades válidas en una misma fecha civil cuentan como un único día. Un registro creado hoy para una fecha anterior se atribuye a la fecha civil indicada y puede completar una semana histórica, cerrar un gap, reconstruir la racha actual o aumentar la mejor racha. Todos esos cálculos usan el valor actual de `reading_days_per_week`.
 
-**Evolución posterior:** objetivos por páginas, minutos de audiolibro u otros criterios; varios tipos de reto; ritmos configurables como uno o tres días por semana o lectura diaria; posible inicio de semana configurable; check-ins manuales solo si los registros de progreso no representan bien el uso real.
+La configuración actual se aplica a todo el historial: cambiar, por ejemplo, de 3 a 5 días por semana recalcula inmediatamente la racha actual y la mejor racha sobre todas las fechas históricas con el nuevo criterio. El MVP no guarda versiones del objetivo, periodos de vigencia ni un valor distinto por semana. No cuentan abrir Foaie, consultar una ficha, editar metadatos, guardar una nota o cita ni realizar tareas administrativas. La racha representa actividad registrada en Foaie, no todos los días en que la persona pudo leer. El MVP no incorpora check-ins manuales de “he leído hoy”.
+
+**Principio de UX:** “La racha celebra la constancia; no penaliza la ausencia”. No hay puntos, premios, medallas, freezes, rankings, confeti, penalizaciones, avisos de pérdida, cuentas atrás, recompensas que desaparezcan, presión para abrir la aplicación ni notificaciones manipulativas. Puede mostrarse `Esta semana — 2 de 3 días`, `Racha actual — 6 semanas` y `Mejor racha — 8 semanas`. Si una racha termina, el lenguaje es neutral: “Tu mejor racha: 8 semanas. Empieza una nueva cuando vuelvas a leer”. La configuración explica brevemente que cambiar los días por semana recalcula la racha actual y la mejor racha con el nuevo criterio.
+
+**Evolución posterior:** objetivos por páginas, minutos de audiolibro u otros criterios; varios tipos de reto; posible inicio de semana configurable; check-ins manuales solo si los registros de progreso no representan bien el uso real.
 
 ## 4.11 Configuración
 
-Preferencias de idioma, zona horaria, inicio de semana para las vistas que la admitan, tema, privacidad, objetivo anual, unidad de progreso, datos y cuenta. En Stage 5.5, `/ajustes` ofrece la UI mínima para crear, editar y eliminar el objetivo anual; ver actual / objetivo y si está alcanzado o superado; consultar racha actual y mejor racha; y leer una explicación breve de su significado. La Racha de lectura conserva siempre la semana de lunes a domingo; personalizar este límite es una evolución posterior. Biblioteca permanece libre de gamificación. La presentación visual prominente de objetivo y racha, junto con el hero, las tarjetas principales, la composición completa del dashboard, la lectura actual, el terminado reciente y las métricas destacadas, queda para Stage 6 — Inicio. Todas las preferencias se guardan por usuario. Exportación muestra fecha, alcance y formato, y solo incluye los datos de la cuenta autenticada. Eliminar cuenta exige contraseña o reautenticación, confirmación explícita y periodo de recuperación.
+Preferencias de idioma, zona horaria, inicio de semana para las vistas que la admitan, tema, privacidad, objetivo anual, unidad de progreso, datos y cuenta. En Stage 5.5, `/ajustes` ofrece la UI mínima para crear, editar y eliminar el objetivo anual; ver actual / objetivo y si está alcanzado o superado; configurar entre 1 y 7 días de lectura por semana; consultar el progreso de la semana actual, la racha actual y la mejor racha; y leer una explicación breve de su significado y del recálculo histórico al cambiar el objetivo semanal. La Racha de lectura conserva siempre la semana de lunes a domingo y no usa `profiles.week_starts_on`; personalizar este límite es una evolución posterior. El copy es neutral, claro, no castigador y no competitivo. Biblioteca permanece libre de gamificación. La presentación visual prominente de objetivo y racha, junto con el hero, las tarjetas principales, la composición completa del dashboard, la lectura actual, el terminado reciente y las métricas destacadas, queda para Stage 6 — Inicio. Todas las preferencias se guardan por usuario. Exportación muestra fecha, alcance y formato, y solo incluye los datos de la cuenta autenticada. Eliminar cuenta exige contraseña o reautenticación, confirmación explícita y periodo de recuperación.
 
 ---
 
@@ -638,10 +642,11 @@ Cada cromo representa una sesión terminada y puede incluir portada, título, au
 │ │                                               [Editar objetivo]│ │
 │ └───────────────────────────────────────────────────────────────┘ │
 │ ┌───────────────────────────────────────────────────────────────┐ │
-│ │ Racha de lectura                 6 semanas leyendo            │ │
+│ │ Esta semana                      2 de 3 días                  │ │
+│ │ Racha actual                     6 semanas                    │ │
 │ │ Mejor racha                      8 semanas                    │ │
 │ └───────────────────────────────────────────────────────────────┘ │
-│ Semanas activas | Histórico de retos                            │
+│ Semanas cumplidas | Histórico de retos                          │
 └───────────────────────────────────────────────────────────────────┘
 ```
 
@@ -770,7 +775,7 @@ Todos los controles tienen default, hover, active, focus-visible, disabled, load
 | `MonthlyChart` | serie por mes, unidad, enlaces | Inicio/estadísticas | bars, compact |
 | `CategoryChart` | categorías, valores, total | Estadísticas | horizontal bars, donut ≤5 categorías |
 | `ReadingChallenge` | objetivo anual, progreso derivado y año | Inicio, Mi álbum, Estadísticas | compact, detailed, achieved, exceeded |
-| `ReadingStreak` | racha actual, mejor racha, semana en curso | Inicio, Mi álbum, Estadísticas | compact, detailed, without-current-activity |
+| `ReadingStreak` | objetivo semanal, días activos de la semana en curso, racha actual y mejor racha | Inicio, Mi álbum, Estadísticas | compact, detailed, incomplete-current-week |
 | `CollectionCard` | nombre, portadas, cantidad | V2 Biblioteca | collage, simple |
 | `FilterPanel` | definición, valores, selección | Biblioteca | sidebar, bottom-sheet |
 | `FilterChip` | etiqueta, valor, quitar | Biblioteca | removable, static |
@@ -934,9 +939,10 @@ Supabase Auth administra `auth.users`: identidad, correo, credenciales, verifica
 | `theme` | enum | NN: SYSTEM/LIGHT/DARK |
 | `status` | enum | NN: ACTIVE/SUSPENDED/DELETION_PENDING |
 | `week_starts_on` | smallint | NN, inicialmente 1=lunes; la Racha de lectura MVP permanece siempre lunes-domingo |
+| `reading_days_per_week` | smallint | NN, default 1, `CHECK (reading_days_per_week BETWEEN 1 AND 7)`; objetivo vigente de días civiles distintos para cumplir una semana de la Racha de lectura |
 | `created_at`, `updated_at` | timestamptz | NN |
 
-Un trigger mínimo posterior al alta en `auth.users` crea el perfil dependiendo únicamente de `new.id`. No depende de `display_name` ni de `raw_user_meta_data`, no contiene lógica compleja y no llama servicios externos. Los defaults `UTC`, `es-ES`, SYSTEM, ACTIVE y 1 permiten crear siempre el perfil mínimo; los datos opcionales se completan después mediante una operación validada.
+Un trigger mínimo posterior al alta en `auth.users` crea el perfil dependiendo únicamente de `new.id`. No depende de `display_name` ni de `raw_user_meta_data`, no contiene lógica compleja y no llama servicios externos. Los defaults `UTC`, `es-ES`, SYSTEM, ACTIVE, lunes y 1 día de lectura por semana permiten crear siempre el perfil mínimo; los datos opcionales se completan después mediante una operación validada. El default de `reading_days_per_week = 1` conserva la semántica previa para perfiles existentes y nuevos.
 
 ### Alcance y gobierno del catálogo (Etapa 3)
 
@@ -1160,7 +1166,9 @@ Colección: id, user_id, name, description, cover_style, timestamps; unique por 
 
 `UNIQUE(user_id, year)` garantiza un único objetivo anual por cuenta. El usuario puede crearlo, editarlo y eliminarlo. El progreso cuenta `reading_sessions` `FINISHED` por `finished_at`, incluidas relecturas y distintas ediciones, y se deriva al consultar; no existe un `current_count` persistido.
 
-La Racha de lectura no requiere una tabla ni un contador propio: se deriva de `progress_entries` `PROGRESS` positivos con `occurred_on` y de `reading_sessions` `FINISHED` con `finished_at`, deduplicados por fecha civil y agrupados en semanas de lunes a domingo. No se almacenan `current_streak` ni `best_streak`, ni se crean `streaks`, `reading_activity_days`, `reading_events` o `goal_progress_snapshots`.
+La Racha de lectura no requiere una tabla ni un contador propio: se deriva de `progress_entries` `PROGRESS` positivos con `occurred_on` y de `reading_sessions` `FINISHED` con `finished_at`, deduplicados por fecha civil y agrupados en semanas de lunes a domingo. Cada semana se cumple cuando sus días distintos alcanzan `profiles.reading_days_per_week`. No se almacenan `current_streak`, `best_streak`, `current_week_active_days` ni otros contadores, ni se crean `streaks`, `reading_activity_days`, `reading_events` o `goal_progress_snapshots`.
+
+El overview compartido expone conceptualmente `currentDate`, `year`, `goal`, `goalProgress`, `readingDaysPerWeek`, `currentWeekActiveDays`, `streak.current` y `streak.longest`. `currentWeekActiveDays` se deriva de las fechas de actividad ya cargadas y no se persiste. `profiles.timezone` y `profiles.reading_days_per_week` se cargan juntos desde el perfil; el MVP no introduce una RPC, una tabla de días activos, snapshots de racha ni contadores persistidos.
 
 `annual_reading_goals` usará RLS de filas propias mediante `auth.uid()`, sin acceso para `PUBLIC` ni `anon`, y con el CRUD mínimo necesario para `authenticated`. No se prevén RPC ni funciones `SECURITY DEFINER` para este modelo.
 
@@ -1210,8 +1218,8 @@ Mi álbum se deriva de `reading_sessions` con estado `FINISHED`; no añade `albu
 | Media de estrellas | `AVG(rating)` donde rating no nulo | Redondear a 2 decimales en cálculo, 1 al mostrar |
 | Género favorito | Mayor número de sesiones terminadas por género primario | Desempate: páginas/minutos no mezclables; mostrar empate |
 | Formato favorito | Formato con más sesiones terminadas | Indicar criterio “por número de lecturas” |
-| Racha de lectura actual | Semanas consecutivas, de lunes a domingo, con al menos un día de actividad válida; la semana abierta sin actividad todavía no rompe la secuencia | `PROGRESS` positivo por `occurred_on` o `FINISH` por `finished_at`; deduplicar por fecha civil y no inferir días no registrados |
-| Mejor Racha de lectura | Mayor secuencia histórica de semanas activas consecutivas | Misma regla semanal; la actividad retroactiva reconstruye el histórico |
+| Racha de lectura actual | Semanas consecutivas cumplidas, de lunes a domingo, cuyos días distintos con actividad válida alcanzan el `reading_days_per_week` actual; una semana abierta incompleta todavía no suma ni rompe la secuencia | `PROGRESS` positivo por `occurred_on` o `FINISH` por `finished_at`; deduplicar por fecha civil, no inferir días no registrados y recalcular todo el historial al cambiar el objetivo |
+| Mejor Racha de lectura | Mayor secuencia histórica de semanas cumplidas con el `reading_days_per_week` actual | Misma regla semanal; una semana cerrada incompleta es un gap y la actividad retroactiva puede reconstruir el histórico |
 | Tiempo medio | Media inclusiva de `finished_at - started_at + 1` | Excluir fechas faltantes y sesiones abandonadas; mediana en V2 por valores extremos |
 | Progreso del Reto lector | `current_count/target_count*100`; una barra puede completarse visualmente al 100 %, pero cifra y porcentaje conservan el valor real aunque supere la meta | `current_count` derivado de sesiones `FINISHED` por `finished_at`; relecturas y distintas ediciones cuentan; evitar división por cero |
 | Comparación anual | `(actual-anterior)` y, si anterior >0, `%` | Si anterior=0 mostrar diferencia absoluta, no “∞ %” |
@@ -1579,11 +1587,11 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 ### Etapa 5.5 — Objetivos y continuidad lectora (diseño funcional cerrado; implementación pendiente)
 
 **Objetivo:** centralizar las reglas compartidas del Reto lector y la Racha de lectura antes de presentarlas en otras pantallas.<br>
-**Tareas:** crear, editar y eliminar el objetivo anual opcional; garantizar uno por usuario y año; calcular progreso real y superación desde sesiones `FINISHED` por `finished_at`; derivar actividad lectora desde `PROGRESS` positivo por `occurred_on` y `FINISH` por `finished_at`; deduplicar fechas civiles; calcular racha semanal actual, mejor racha y semanas activas; reconstruir cambios retroactivos; probar límites de semana, año y zona horaria; y ofrecer la UI mínima en `/ajustes`.<br>
+**Tareas:** crear, editar y eliminar el objetivo anual opcional; garantizar uno por usuario y año; calcular progreso real y superación desde sesiones `FINISHED` por `finished_at`; derivar actividad lectora desde `PROGRESS` positivo por `occurred_on` y `FINISH` por `finished_at`; deduplicar fechas civiles; persistir en el perfil un objetivo semanal configurable de 1 a 7 días con default 1; calcular progreso de la semana actual, racha semanal actual, mejor racha y semanas cumplidas aplicando la configuración vigente a todo el historial; reconstruir cambios retroactivos; probar límites de semana, año y zona horaria; y ofrecer la UI mínima en `/ajustes`.<br>
 **Módulos:** `lib/goals`, `lib/reading-activity`, servicios y pruebas de dominio.<br>
 **Dependencias:** Etapa 5.<br>
 **Resultado pendiente:** reglas compartidas y almacenamiento mínimo definidos; tras implementarlos, Inicio, Mi álbum y Estadísticas consumirán los mismos resultados sin contadores duplicados ni fórmulas propias. Stage 6 conserva la responsabilidad del hero, tarjetas principales, composición completa del dashboard, lectura actual, terminado reciente, métricas destacadas y presentación prominente de objetivo y racha.<br>
-**Terminada cuando:** reto y rachas coinciden con un dataset conocido, relecturas y metas superadas se representan correctamente, la semana abierta no rompe la continuidad y las correcciones de fechas/progreso producen resultados deterministas.
+**Terminada cuando:** reto y rachas coinciden con un dataset conocido, relecturas y metas superadas se representan correctamente, el objetivo semanal configurable y su recálculo histórico están implementados, la semana abierta incompleta no suma ni rompe la continuidad, una semana cerrada incompleta rompe la secuencia y las correcciones de fechas/progreso producen resultados deterministas. Stage 5.5 permanece abierta hasta completar y verificar estos criterios.
 
 **Git:** rama `feature/reading-goals`; separar, si facilita la revisión, reglas de Reto lector y cálculo de Racha de lectura; mensaje sugerido `feat: add reading challenge and weekly streak calculations`; fusionar cuando las reglas temporales, propiedad multiusuario y pruebas límite pasen.
 
@@ -1623,7 +1631,7 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 ### Etapa 9 — Estadísticas MVP
 
 **Objetivo:** análisis fiable.  
-**Tareas:** consultas compartidas de libros/páginas/audio/media, meses, formatos/géneros, autores y libros de cinco estrellas; configuración e histórico del Reto lector; análisis de Racha de lectura y semanas activas; selector anual y alternativa tabular; enriquecer `Mi [año]` mediante esas mismas funciones, sin duplicar lógica.<br>
+**Tareas:** consultas compartidas de libros/páginas/audio/media, meses, formatos/géneros, autores y libros de cinco estrellas; configuración e histórico del Reto lector; análisis de Racha de lectura y semanas cumplidas; selector anual y alternativa tabular; enriquecer `Mi [año]` mediante esas mismas funciones, sin duplicar lógica.<br>
 **Módulos:** `app/statistics`, `lib/statistics`, charts.  
 **Dependencias:** Etapa 5.5 y datos reales suficientes.<br>
 **Resultado:** estadísticas explicables y accesibles.  
@@ -1644,7 +1652,7 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 
 ### Después del MVP
 
-Orden V2: colecciones → objetivos por páginas/audio y ritmos configurables de Racha de lectura → estadísticas avanzadas/calendario → extracción y normalización automática del color contextual → animaciones y personalización de Mi álbum → importación masiva → PWA → tarjetas compartibles → Wrapped. Para Mi álbum quedan previstos pegado del cromo, paso de página, celebración al completar una página, spreads, reordenación manual y exportación visual; serán mejoras progresivas y opcionales. La extracción de portada seguirá siendo opcional, validada y desacoplada del tema global. Recomendaciones y gamificación solo después de confirmar utilidad y calidad de datos.
+Orden V2: colecciones → objetivos por páginas/audio → estadísticas avanzadas/calendario → extracción y normalización automática del color contextual → animaciones y personalización de Mi álbum → importación masiva → PWA → tarjetas compartibles → Wrapped. Para Mi álbum quedan previstos pegado del cromo, paso de página, celebración al completar una página, spreads, reordenación manual y exportación visual; serán mejoras progresivas y opcionales. La extracción de portada seguirá siendo opcional, validada y desacoplada del tema global. Recomendaciones y gamificación solo después de confirmar utilidad y calidad de datos.
 
 ---
 

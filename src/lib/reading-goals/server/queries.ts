@@ -17,6 +17,11 @@ import {
 } from "./mappers";
 import { createAuthenticatedReadingGoalReadClient } from "./auth";
 
+export type ReadingProfilePreferences = Readonly<{
+  timezone: string;
+  readingDaysPerWeek: number;
+}>;
+
 export async function getAnnualReadingGoal(
   year: number,
 ): Promise<AnnualReadingGoal | null> {
@@ -69,21 +74,36 @@ export async function listProgressReadingDates(): Promise<string[]> {
   return data.map(({ occurred_on }) => occurred_on);
 }
 
-async function getProfileTimezone(): Promise<string> {
+export async function getReadingProfilePreferences(): Promise<ReadingProfilePreferences> {
   const supabase = await createAuthenticatedReadingGoalReadClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("timezone")
+    .select("timezone, reading_days_per_week")
     .single();
 
-  if (error) throw mapReadingGoalReadError(error, "getProfileTimezone");
-  return data.timezone;
+  if (error) {
+    throw mapReadingGoalReadError(error, "getReadingProfilePreferences");
+  }
+  if (
+    !Number.isSafeInteger(data.reading_days_per_week) ||
+    data.reading_days_per_week < 1 ||
+    data.reading_days_per_week > 7
+  ) {
+    throw new ReadingGoalError("unexpected", {
+      operation: "getReadingProfilePreferences",
+    });
+  }
+  return {
+    timezone: data.timezone,
+    readingDaysPerWeek: data.reading_days_per_week,
+  };
 }
 
 export async function getReadingGoalsOverview(
   instant: Date = new Date(),
 ): Promise<ReadingGoalsOverview> {
-  const timezone = await getProfileTimezone();
+  const { timezone, readingDaysPerWeek } =
+    await getReadingProfilePreferences();
   let currentDate: string;
 
   try {
@@ -107,5 +127,6 @@ export async function getReadingGoalsOverview(
     goal,
     finishedDates,
     progressDates,
+    readingDaysPerWeek,
   });
 }

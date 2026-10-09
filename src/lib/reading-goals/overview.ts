@@ -26,7 +26,7 @@ type ReadingGoalsOverviewInput = Readonly<{
   goal: AnnualReadingGoal | null;
   finishedDates: readonly string[];
   progressDates: readonly string[];
-  readingDaysPerWeek?: number;
+  readingDaysPerWeek: number;
 }>;
 
 export function deriveReadingGoalsOverview({
@@ -34,7 +34,7 @@ export function deriveReadingGoalsOverview({
   goal,
   finishedDates,
   progressDates,
-  readingDaysPerWeek = 1,
+  readingDaysPerWeek,
 }: ReadingGoalsOverviewInput): ReadingGoalsOverview {
   if (!isValidCivilDate(currentDate)) {
     throw new RangeError("currentDate must be a valid civil date.");

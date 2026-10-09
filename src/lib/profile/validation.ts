@@ -32,3 +32,14 @@ export const profilePreferencesSchema = z.object({
   displayName,
   timezone,
 });
+
+const READING_DAYS_MESSAGE =
+  "Elige entre 1 y 7 días de lectura por semana.";
+
+export const readingDaysPerWeekSchema = z.object({
+  readingDaysPerWeek: z.coerce
+    .number({ error: READING_DAYS_MESSAGE })
+    .int(READING_DAYS_MESSAGE)
+    .min(1, READING_DAYS_MESSAGE)
+    .max(7, READING_DAYS_MESSAGE),
+});

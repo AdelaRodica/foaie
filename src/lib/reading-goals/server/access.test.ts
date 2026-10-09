@@ -24,6 +24,7 @@ import {
 } from "./mutations";
 import {
   getAnnualReadingGoal,
+  getReadingProfilePreferences,
   getReadingGoalsOverview,
   listFinishedReadingDates,
   listProgressReadingDates,
@@ -165,9 +166,50 @@ describe("reading goal queries", () => {
     await expectGoalError(listProgressReadingDates(), "unexpected");
   });
 
+  it.each([1, 3, 7])(
+    "maps profile timezone and reading days %s",
+    async (readingDaysPerWeek) => {
+      const query = createSingleQuery({
+        data: {
+          timezone: "Europe/Madrid",
+          reading_days_per_week: readingDaysPerWeek,
+        },
+        error: null,
+      });
+      mocks.readClient.from.mockReturnValueOnce({ select: query.select });
+
+      await expect(getReadingProfilePreferences()).resolves.toEqual({
+        timezone: "Europe/Madrid",
+        readingDaysPerWeek,
+      });
+      expect(query.select).toHaveBeenCalledWith(
+        "timezone, reading_days_per_week",
+      );
+    },
+  );
+
+  it.each([null, 0, 8, 1.5])(
+    "maps invalid stored reading days %s to unexpected",
+    async (readingDaysPerWeek) => {
+      const query = createSingleQuery({
+        data: {
+          timezone: "Europe/Madrid",
+          reading_days_per_week: readingDaysPerWeek,
+        },
+        error: null,
+      });
+      mocks.readClient.from.mockReturnValueOnce({ select: query.select });
+
+      await expectGoalError(getReadingProfilePreferences(), "unexpected");
+    },
+  );
+
   it("composes four queries using the profile timezone and current local year", async () => {
     const profileQuery = createSingleQuery({
-      data: { timezone: "America/Los_Angeles" },
+      data: {
+        timezone: "America/Los_Angeles",
+        reading_days_per_week: 3,
+      },
       error: null,
     });
     const goalQuery = createMaybeSingleQuery({ data: goalRow, error: null });
@@ -197,13 +239,62 @@ describe("reading goal queries", () => {
     expect(overview.currentDate).toBe("2026-12-31");
     expect(overview.year).toBe(2026);
     expect(overview.goalProgress?.currentCount).toBe(2);
-    expect(overview.streak).toEqual({ current: 1, longest: 1 });
+    expect(overview.readingDaysPerWeek).toBe(3);
+    expect(overview.currentWeekActiveDays).toBe(1);
+    expect(overview.streak).toEqual({ current: 0, longest: 0 });
     expect(mocks.readClient.from).toHaveBeenCalledTimes(4);
+  });
+
+  it("uses the stored threshold to recalculate the same activity history", async () => {
+    const profileSingle = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: { timezone: "UTC", reading_days_per_week: 3 },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: { timezone: "UTC", reading_days_per_week: 5 },
+        error: null,
+      });
+    const profileSelect = vi.fn(() => ({ single: profileSingle }));
+    const goalQuery = createMaybeSingleQuery({ data: null, error: null });
+    const finishedQuery = createFilteredListQuery({
+      data: [
+        "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25",
+        "2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02",
+        "2026-10-05", "2026-10-06", "2026-10-07",
+      ].map((finished_at) => ({ finished_at })),
+      error: null,
+    });
+    const progressQuery = createFilteredListQuery({ data: [], error: null });
+
+    mocks.readClient.from.mockImplementation((table: string) => {
+      if (table === "profiles") return { select: profileSelect };
+      if (table === "annual_reading_goals") return { select: goalQuery.select };
+      if (table === "reading_sessions") return { select: finishedQuery.select };
+      return { select: progressQuery.select };
+    });
+
+    const instant = new Date("2026-10-09T12:00:00.000Z");
+    const thresholdThree = await getReadingGoalsOverview(instant);
+    const thresholdFive = await getReadingGoalsOverview(instant);
+
+    expect(thresholdThree).toMatchObject({
+      readingDaysPerWeek: 3,
+      currentWeekActiveDays: 3,
+      streak: { current: 3, longest: 3 },
+    });
+    expect(thresholdFive).toMatchObject({
+      readingDaysPerWeek: 5,
+      currentWeekActiveDays: 3,
+      streak: { current: 2, longest: 2 },
+    });
+    expect(mocks.readClient.from).toHaveBeenCalledTimes(8);
   });
 
   it("maps an invalid stored timezone to unexpected", async () => {
     const profileQuery = createSingleQuery({
-      data: { timezone: "Invalid/Timezone" },
+      data: { timezone: "Invalid/Timezone", reading_days_per_week: 1 },
       error: null,
     });
     mocks.readClient.from.mockReturnValueOnce({ select: profileQuery.select });

@@ -1,7 +1,10 @@
 import { isValidCivilDate } from "../reading/validation";
 import { deriveReadingActivityDates } from "./activity";
 import { deriveAnnualReadingGoalProgress } from "./goal-progress";
-import { deriveWeeklyReadingStreak } from "./streak";
+import {
+  deriveCurrentWeekActiveDays,
+  deriveWeeklyReadingStreak,
+} from "./streak";
 import type {
   AnnualReadingGoal,
   AnnualReadingGoalProgress,
@@ -13,6 +16,8 @@ export type ReadingGoalsOverview = Readonly<{
   year: number;
   goal: AnnualReadingGoal | null;
   goalProgress: AnnualReadingGoalProgress | null;
+  readingDaysPerWeek: number;
+  currentWeekActiveDays: number;
   streak: WeeklyReadingStreak;
 }>;
 
@@ -21,6 +26,7 @@ type ReadingGoalsOverviewInput = Readonly<{
   goal: AnnualReadingGoal | null;
   finishedDates: readonly string[];
   progressDates: readonly string[];
+  readingDaysPerWeek?: number;
 }>;
 
 export function deriveReadingGoalsOverview({
@@ -28,6 +34,7 @@ export function deriveReadingGoalsOverview({
   goal,
   finishedDates,
   progressDates,
+  readingDaysPerWeek = 1,
 }: ReadingGoalsOverviewInput): ReadingGoalsOverview {
   if (!isValidCivilDate(currentDate)) {
     throw new RangeError("currentDate must be a valid civil date.");
@@ -50,6 +57,15 @@ export function deriveReadingGoalsOverview({
     goalProgress: goal
       ? deriveAnnualReadingGoalProgress(goal, currentCount)
       : null,
-    streak: deriveWeeklyReadingStreak(activityDates, currentDate),
+    readingDaysPerWeek,
+    currentWeekActiveDays: deriveCurrentWeekActiveDays(
+      activityDates,
+      currentDate,
+    ),
+    streak: deriveWeeklyReadingStreak(
+      activityDates,
+      currentDate,
+      readingDaysPerWeek,
+    ),
   };
 }

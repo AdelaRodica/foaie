@@ -4,6 +4,18 @@ import type { WeeklyReadingStreak } from "./types";
 const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
 const WEEK_IN_MILLISECONDS = 7 * DAY_IN_MILLISECONDS;
 
+function assertValidRequiredDaysPerWeek(requiredDaysPerWeek: number): void {
+  if (
+    Number.isSafeInteger(requiredDaysPerWeek) === false ||
+    requiredDaysPerWeek < 1 ||
+    requiredDaysPerWeek > 7
+  ) {
+    throw new RangeError(
+      "requiredDaysPerWeek must be an integer between 1 and 7.",
+    );
+  }
+}
+
 // UTC is used only as deterministic Gregorian calendar arithmetic. These
 // civil dates are never interpreted in the process or profile timezone.
 function civilDateToTimestamp(value: string): number {
@@ -24,23 +36,46 @@ function mondayTimestamp(timestamp: number): number {
   return timestamp - daysSinceMonday * DAY_IN_MILLISECONDS;
 }
 
-function deriveActiveWeekTimestamps(
+function deriveActiveDaysByWeek(
   activityDates: readonly string[],
   maximumDate?: string,
-): Set<number> {
+): Map<number, Set<number>> {
   const maximumTimestamp = maximumDate === undefined
     ? undefined
     : civilDateToTimestamp(maximumDate);
-  const activeWeeks = new Set<number>();
+  const activeDaysByWeek = new Map<number, Set<number>>();
 
   for (const activityDate of activityDates) {
     const timestamp = civilDateToTimestamp(activityDate);
     if (maximumTimestamp === undefined || timestamp <= maximumTimestamp) {
-      activeWeeks.add(mondayTimestamp(timestamp));
+      const week = mondayTimestamp(timestamp);
+      const activeDays = activeDaysByWeek.get(week) ?? new Set<number>();
+      activeDays.add(timestamp);
+      activeDaysByWeek.set(week, activeDays);
     }
   }
 
-  return activeWeeks;
+  return activeDaysByWeek;
+}
+
+function deriveCompletedWeekTimestamps(
+  activityDates: readonly string[],
+  requiredDaysPerWeek: number,
+  maximumDate?: string,
+): Set<number> {
+  assertValidRequiredDaysPerWeek(requiredDaysPerWeek);
+  const completedWeeks = new Set<number>();
+
+  for (const [week, activeDays] of deriveActiveDaysByWeek(
+    activityDates,
+    maximumDate,
+  )) {
+    if (activeDays.size >= requiredDaysPerWeek) {
+      completedWeeks.add(week);
+    }
+  }
+
+  return completedWeeks;
 }
 
 function currentStreakFromWeeks(
@@ -81,25 +116,51 @@ function longestStreakFromWeeks(activeWeeks: ReadonlySet<number>): number {
 export function deriveCurrentWeeklyReadingStreak(
   activityDates: readonly string[],
   currentDate: string,
+  requiredDaysPerWeek: number,
 ): number {
   return currentStreakFromWeeks(
-    deriveActiveWeekTimestamps(activityDates, currentDate),
+    deriveCompletedWeekTimestamps(
+      activityDates,
+      requiredDaysPerWeek,
+      currentDate,
+    ),
     currentDate,
   );
 }
 
 export function deriveLongestWeeklyReadingStreak(
   activityDates: readonly string[],
+  requiredDaysPerWeek: number,
 ): number {
-  return longestStreakFromWeeks(deriveActiveWeekTimestamps(activityDates));
+  return longestStreakFromWeeks(
+    deriveCompletedWeekTimestamps(activityDates, requiredDaysPerWeek),
+  );
+}
+
+export function deriveCurrentWeekActiveDays(
+  activityDates: readonly string[],
+  currentDate: string,
+): number {
+  const currentTimestamp = civilDateToTimestamp(currentDate);
+  const currentWeek = mondayTimestamp(currentTimestamp);
+  return deriveActiveDaysByWeek(activityDates, currentDate).get(currentWeek)
+    ?.size ?? 0;
 }
 
 export function deriveWeeklyReadingStreak(
   activityDates: readonly string[],
   currentDate: string,
+  requiredDaysPerWeek: number,
 ): WeeklyReadingStreak {
-  const historicalWeeks = deriveActiveWeekTimestamps(activityDates);
-  const currentWeeks = deriveActiveWeekTimestamps(activityDates, currentDate);
+  const historicalWeeks = deriveCompletedWeekTimestamps(
+    activityDates,
+    requiredDaysPerWeek,
+  );
+  const currentWeeks = deriveCompletedWeekTimestamps(
+    activityDates,
+    requiredDaysPerWeek,
+    currentDate,
+  );
 
   return {
     current: currentStreakFromWeeks(currentWeeks, currentDate),

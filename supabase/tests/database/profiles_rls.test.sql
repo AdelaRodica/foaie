@@ -1,6 +1,6 @@
 begin;
 
-select plan(11);
+select plan(22);
 
 do $$
 declare
@@ -50,6 +50,66 @@ select is(
   ),
   0::bigint,
   'User A cannot read user B profile'
+);
+
+select is(
+  (
+    select reading_days_per_week
+    from public.profiles
+    where id = pg_catalog.current_setting('foaie.test_user_a_id')::uuid
+  ),
+  1::smallint,
+  'Existing profiles receive the default reading days per week'
+);
+
+select is(
+  (
+    with updated_profile as (
+      update public.profiles
+      set reading_days_per_week = 3
+      where id = pg_catalog.current_setting('foaie.test_user_a_id')::uuid
+      returning reading_days_per_week
+    )
+    select reading_days_per_week from updated_profile
+  ),
+  3::smallint,
+  'User A can update their reading days per week to 3'
+);
+
+select is(
+  (
+    with updated_profile as (
+      update public.profiles
+      set reading_days_per_week = 7
+      where id = pg_catalog.current_setting('foaie.test_user_a_id')::uuid
+      returning reading_days_per_week
+    )
+    select reading_days_per_week from updated_profile
+  ),
+  7::smallint,
+  'User A can update their reading days per week to 7'
+);
+
+select throws_ok(
+  $$
+    update public.profiles
+    set reading_days_per_week = 0
+    where id = pg_catalog.current_setting('foaie.test_user_a_id')::uuid
+  $$,
+  '23514',
+  null,
+  'Reading days per week cannot be lower than 1'
+);
+
+select throws_ok(
+  $$
+    update public.profiles
+    set reading_days_per_week = 8
+    where id = pg_catalog.current_setting('foaie.test_user_a_id')::uuid
+  $$,
+  '23514',
+  null,
+  'Reading days per week cannot be higher than 7'
 );
 
 select is(
@@ -154,7 +214,45 @@ select is(
   'User B cannot read user A profile'
 );
 
+select is(
+  (
+    with updated_profile as (
+      update public.profiles
+      set reading_days_per_week = 3
+      where id = pg_catalog.current_setting('foaie.test_user_a_id')::uuid
+      returning id
+    )
+    select count(*) from updated_profile
+  ),
+  0::bigint,
+  'User B cannot update user A reading days per week'
+);
+
 reset role;
+
+select is(
+  (
+    select reading_days_per_week
+    from public.profiles
+    where id = pg_catalog.current_setting('foaie.test_user_a_id')::uuid
+  ),
+  7::smallint,
+  'User B did not change user A reading days per week'
+);
+
+select is(
+  (
+    with restored_profile as (
+      update public.profiles
+      set reading_days_per_week = 1
+      where id = pg_catalog.current_setting('foaie.test_user_a_id')::uuid
+      returning reading_days_per_week
+    )
+    select reading_days_per_week from restored_profile
+  ),
+  1::smallint,
+  'The test restores user A reading days per week'
+);
 
 select pg_catalog.set_config(
   'request.jwt.claims',
@@ -168,6 +266,37 @@ select throws_ok(
   '42501',
   null,
   'Anonymous users cannot read profiles'
+);
+
+select throws_ok(
+  $$
+    update public.profiles
+    set reading_days_per_week = 3
+    where id = pg_catalog.current_setting('foaie.test_user_a_id')::uuid
+  $$,
+  '42501',
+  null,
+  'Anonymous users cannot update profiles'
+);
+
+select throws_ok(
+  $$
+    insert into public.profiles (id)
+    values (pg_catalog.current_setting('foaie.test_user_a_id')::uuid)
+  $$,
+  '42501',
+  null,
+  'Anonymous users cannot insert profiles'
+);
+
+select throws_ok(
+  $$
+    delete from public.profiles
+    where id = pg_catalog.current_setting('foaie.test_user_a_id')::uuid
+  $$,
+  '42501',
+  null,
+  'Anonymous users cannot delete profiles'
 );
 
 reset role;

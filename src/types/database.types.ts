@@ -202,6 +202,7 @@ export type Database = {
           display_name: string | null
           id: string
           locale: string
+          reading_days_per_week: number
           status: string
           theme: string
           timezone: string
@@ -213,6 +214,7 @@ export type Database = {
           display_name?: string | null
           id: string
           locale?: string
+          reading_days_per_week?: number
           status?: string
           theme?: string
           timezone?: string
@@ -224,6 +226,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           locale?: string
+          reading_days_per_week?: number
           status?: string
           theme?: string
           timezone?: string

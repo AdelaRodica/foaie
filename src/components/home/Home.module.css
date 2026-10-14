@@ -1,0 +1,354 @@
+.eyebrow {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sectionHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.sectionHeading h2,
+.goalCard h2,
+.streakCard h2 {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-family-brand);
+  font-size: var(--font-size-heading);
+}
+
+.sectionHeading a,
+.goalCard a {
+  color: var(--color-action);
+  font-weight: var(--font-weight-semibold);
+}
+
+.currentSurface {
+  display: grid;
+  gap: var(--space-6);
+  min-width: 0;
+  background:
+    radial-gradient(circle at 100% 0, var(--color-action-soft), transparent 32%),
+    var(--color-surface);
+}
+
+.currentRail {
+  display: flex;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0 0 var(--space-2);
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x proximity;
+}
+
+.currentCard {
+  display: grid;
+  flex: 0 0 min(100%, 35rem);
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  scroll-snap-align: start;
+}
+
+.bookLink {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: var(--space-4);
+  color: inherit;
+  text-decoration: none;
+}
+
+.bookLink:focus-visible,
+.recentList a:focus-visible {
+  border-radius: var(--radius-field);
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.cover {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-field);
+  background: linear-gradient(145deg, var(--color-brand-blush), var(--color-brand-terracotta));
+  color: var(--color-on-action);
+  font-family: var(--font-family-brand);
+  font-weight: var(--font-weight-bold);
+  box-shadow: var(--shadow-low);
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bookCopy,
+.recentCopy {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.bookCopy strong,
+.recentCopy strong {
+  font-family: var(--font-family-brand);
+  font-size: var(--font-size-subtitle);
+  line-height: var(--line-height-heading);
+  overflow-wrap: anywhere;
+}
+
+.bookCopy > span,
+.recentCopy > span,
+.recentCopy time {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.progressText {
+  margin-top: var(--space-2);
+  color: var(--color-text) !important;
+  font-weight: var(--font-weight-semibold);
+}
+
+.progress {
+  width: 100%;
+  height: 0.65rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-subtle);
+  accent-color: var(--color-brand-terracotta);
+}
+
+.progress::-webkit-progress-bar {
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-subtle);
+}
+
+.progress::-webkit-progress-value,
+.progress::-moz-progress-bar {
+  border-radius: var(--radius-pill);
+  background: var(--color-brand-terracotta);
+}
+
+.readingActions {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.goalColumn {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.goalCard,
+.streakCard {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-6);
+}
+
+.goalValue,
+.weekProgress,
+.supportingCopy {
+  margin: 0;
+}
+
+.goalValue strong {
+  font-family: var(--font-family-brand);
+  font-size: var(--font-size-title-small);
+}
+
+.supportingCopy {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-relaxed);
+}
+
+.streakValues {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.streakValues div {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius-field);
+  background: var(--color-surface-subtle);
+}
+
+.streakValues dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.streakValues dd {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.periodCard {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-subtle);
+}
+
+.periodCard h3 {
+  margin: 0;
+  font-family: var(--font-family-brand);
+  font-size: var(--font-size-subtitle);
+}
+
+.periodValues {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.periodValues div {
+  min-width: 0;
+}
+
+.periodValues dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.periodValues dd {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-family-brand);
+  font-size: clamp(1.15rem, 4vw, 1.75rem);
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.missingData {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-meta);
+}
+
+.chart {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.chart ul {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(2.5rem, 1fr));
+  align-items: end;
+  gap: var(--space-2);
+  min-width: 38rem;
+  height: 13rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chart li {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: end;
+  height: 100%;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-meta);
+  text-align: center;
+}
+
+.chart progress {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: var(--radius-field) var(--radius-field) 0 0;
+  background: var(--color-surface-subtle);
+  accent-color: var(--color-brand-terracotta);
+  writing-mode: vertical-lr;
+  direction: rtl;
+}
+
+.chart progress::-webkit-progress-bar {
+  background: var(--color-surface-subtle);
+}
+
+.chart progress::-webkit-progress-value,
+.chart progress::-moz-progress-bar {
+  background: var(--color-brand-terracotta);
+}
+
+.chartValue {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.recentList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recentList a {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: var(--space-3);
+  color: inherit;
+  text-decoration: none;
+}
+
+.recentCopy strong {
+  font-size: var(--font-size-body);
+}
+
+@media (min-width: 48rem) {
+  .currentCard {
+    grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.75fr);
+  }
+
+  .recentList {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .recentList a {
+    grid-template-columns: 1fr;
+  }
+
+  .recentList .cover {
+    max-width: 8rem;
+  }
+}
+
+@media (max-width: 23rem) {
+  .bookLink {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+  }
+
+  .periodValues,
+  .recentList {
+    grid-template-columns: 1fr;
+  }
+}

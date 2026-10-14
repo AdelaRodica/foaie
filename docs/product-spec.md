@@ -1596,16 +1596,17 @@ Git forma parte del proceso de calidad, no es una tarea que se deja para el fina
 
 **Git:** implementación completada en `feature/reading-progress`, con entregas separadas para almacenamiento, dominio, server/actions, preferencia configurable y UI; cierre documental tras validar reglas temporales, propiedad multiusuario y pruebas límite.
 
-### Etapa 6 — Inicio
+### ✅ Etapa 6 — Inicio (completada)
 
-**Objetivo:** dar utilidad inmediata al entrar.  
+**Objetivo:** dar utilidad inmediata al entrar.<br>
+**Estado final:** `/` ofrece una vista personalizada y serena con todas las lecturas activas, actualización rápida de progreso y cierre o abandono, terminados recientes, Reto lector anual, Racha de lectura actual/mejor y cifras explicables de lecturas, páginas y audio del mes y del año. El gráfico mensual muestra sesiones terminadas y cada relectura cuenta por separado. Los totales incompletos indican cuántas lecturas carecen de páginas o duración, sin inventar valores. La media de valoración permanece fuera de esta entrega porque las valoraciones todavía no forman parte del modelo implementado; se incorporará con la capa estadística aprobada cuando exista esa fuente de datos.<br>
 **Tareas:** lectura actual, actualización rápida, terminado reciente, métricas mes/año, Reto lector actual y Racha de lectura actual/mejor.<br>
-**Módulos:** `app/(app)/page.tsx`, `components/home`, consultas agregadas, tarjetas.<br>
+**Módulos:** `app/(app)/(home)/page.tsx`, `components/home`, `lib/home`, consultas agregadas y tarjetas.<br>
 **Dependencias:** Etapa 5.5.<br>
-**Resultado:** inicio personalizado con datos reales.  
-**Terminada cuando:** cada cifra coincide con casos de prueba y enlaza a sus registros.
+**Resultado:** Inicio personalizado con datos reales, cuatro consultas de tablas y sin N+1: perfil, Biblioteca con sesiones embebidas, objetivo anual y eventos de progreso. La misma lectura agregada alimenta lecturas actuales, recientes, métricas, gráfico, progreso anual y fechas de finalización de la racha.<br>
+**Cierre verificado:** los casos de Biblioteca vacía, Biblioteca sin sesiones, lecturas activas, historial terminado, objetivo ausente o configurado y racha a cero o activa tienen presentación útil y neutral. Las cifras respetan `profiles.timezone`, las fechas civiles y las reglas compartidas de objetivo y racha; enlazan a Biblioteca, Ajustes o a la obra correspondiente. Responsive, teclado, semántica, estados de foco, aislamiento por RLS y errores sin detalles internos están cubiertos sin cambios de DB, RLS, migraciones ni dependencias. Stage 6 está completa.
 
-**Git:** rama `feature/home`; punto de commit con Inicio completo y cifras verificadas; mensaje sugerido `feat: create reading home`; `push` después de comprobar datos reales y estados vacío/error; fusionar cuando consultas, enlaces, responsive, accesibilidad y pruebas pasen.
+**Git:** implementación completada en `feature/reading-progress`; cierre tras validar consultas compartidas, estados vacíos/error, enlaces, responsive, accesibilidad y pruebas. El siguiente stage es Etapa 7 — Mi álbum.
 
 ### Etapa 7 — Mi álbum
 

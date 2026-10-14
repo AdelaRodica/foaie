@@ -103,7 +103,7 @@ Actualmente están implementados:
 - Gestión de objetivo anual y ritmo semanal desde Ajustes.
 - Migraciones SQL versionadas y sincronizadas con el proyecto remoto de desarrollo.
 
-Las etapas 5 — Lecturas y progreso y 5.5 — Objetivos y continuidad lectora están completadas. La siguiente etapa es la Etapa 6 — Inicio; Mi álbum, importación y estadísticas continúan pendientes.
+Las etapas 5 — Lecturas y progreso, 5.5 — Objetivos y continuidad lectora y 6 — Inicio están completadas. La siguiente etapa es la Etapa 7 — Mi álbum; importación y estadísticas continúan pendientes.
 
 ## En desarrollo
 
@@ -176,7 +176,7 @@ La configuración local reside en `.env.local`, que nunca debe versionarse. `.en
 6. ✅ Biblioteca.
 7. ✅ Etapa 5 — Lecturas y progreso.
 8. ✅ Etapa 5.5 — Objetivos y continuidad lectora.
-9. Etapa 6 — Inicio.
+9. ✅ Etapa 6 — Inicio.
 10. Etapa 7 — Mi álbum.
 11. Etapa 8 — Importación opcional por API.
 12. Etapa 9 — Estadísticas del MVP.

@@ -1,0 +1,90 @@
+.page {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.heroGrid {
+  display: grid;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.noCurrent {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: var(--space-4);
+  min-height: 20rem;
+  background:
+    radial-gradient(circle at 90% 10%, var(--color-action-soft), transparent 38%),
+    var(--color-surface);
+}
+
+.noCurrent h2,
+.noCurrent p {
+  max-width: var(--text-max-width);
+  margin: 0;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.summarySurface,
+.chartSurface,
+.recentSurface {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.sectionHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.sectionHeading h2 {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-family-brand);
+  font-size: var(--font-size-heading);
+}
+
+.sectionHeading a {
+  color: var(--color-action);
+  font-weight: var(--font-weight-semibold);
+}
+
+.definition {
+  max-width: var(--text-max-width);
+  margin: calc(var(--space-3) * -1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.periodGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .heroGrid {
+    grid-template-columns: minmax(0, 2fr) minmax(17rem, 1fr);
+  }
+
+  .periodGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

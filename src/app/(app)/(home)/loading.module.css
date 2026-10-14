@@ -1,0 +1,96 @@
+.page,
+.header,
+.hero,
+.side,
+.book,
+.copy {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.page {
+  gap: var(--space-8);
+}
+
+.header {
+  max-width: 45rem;
+}
+
+.heroGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.hero {
+  min-height: 22rem;
+}
+
+.book {
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  align-items: start;
+}
+
+.cover,
+.shortLine,
+.titleLine,
+.longLine,
+.card,
+.summary {
+  border-radius: var(--radius-field);
+  background: var(--color-surface-subtle);
+  animation: pulse 1.5s ease-in-out infinite alternate;
+}
+
+.cover {
+  aspect-ratio: 2 / 3;
+}
+
+.shortLine,
+.titleLine,
+.longLine {
+  display: block;
+  height: 0.9rem;
+}
+
+.shortLine {
+  width: 8rem;
+}
+
+.titleLine {
+  width: min(75%, 25rem);
+  height: 2rem;
+}
+
+.longLine {
+  width: min(100%, 38rem);
+}
+
+.card {
+  min-height: 10rem;
+}
+
+.summary {
+  min-height: 15rem;
+}
+
+@keyframes pulse {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+@media (min-width: 48rem) {
+  .heroGrid {
+    grid-template-columns: minmax(0, 2fr) minmax(17rem, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cover,
+  .shortLine,
+  .titleLine,
+  .longLine,
+  .card,
+  .summary {
+    animation: none;
+  }
+}

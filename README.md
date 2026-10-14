@@ -83,7 +83,7 @@ Las decisiones técnicas completas se encuentran en [docs/product-spec.md](docs/
 
 ## Estado actual
 
-Foaie ha completado la base visual, el acceso privado, el catálogo manual, la Biblioteca personal y la Etapa 5 de lecturas y progreso. La aplicación funciona como sistema multiusuario privado por defecto.
+Foaie ha completado la base visual, el acceso privado, el catálogo manual, la Biblioteca personal, la Etapa 5 de lecturas y progreso y la Etapa 5.5 de objetivos y continuidad lectora. La aplicación funciona como sistema multiusuario privado por defecto.
 
 Actualmente están implementados:
 
@@ -98,9 +98,12 @@ Actualmente están implementados:
 - Registro y corrección atómicos del progreso, además de cierre y abandono conservando el historial.
 - Filtros históricos que permiten localizar una misma pertenencia por sus sesiones terminadas y abandonadas.
 - Protección del borrado normal de una pertenencia cuando conserva historial de lectura.
+- Objetivo anual opcional por usuario y año, con progreso real desde sesiones terminadas y relecturas contabilizadas.
+- Ritmo semanal configurable de 1 a 7 días, progreso de la semana actual y rachas actual y máxima derivadas de la actividad registrada.
+- Gestión de objetivo anual y ritmo semanal desde Ajustes.
 - Migraciones SQL versionadas y sincronizadas con el proyecto remoto de desarrollo.
 
-La Etapa 5 — Lecturas y progreso está completada. Las etapas de objetivos y continuidad lectora, Inicio, Mi álbum, importación y estadísticas continúan pendientes.
+Las etapas 5 — Lecturas y progreso y 5.5 — Objetivos y continuidad lectora están completadas. La siguiente etapa es la Etapa 6 — Inicio; Mi álbum, importación y estadísticas continúan pendientes.
 
 ## En desarrollo
 
@@ -172,7 +175,7 @@ La configuración local reside en `.env.local`, que nunca debe versionarse. `.en
 5. ✅ Catálogo manual de libros.
 6. ✅ Biblioteca.
 7. ✅ Etapa 5 — Lecturas y progreso.
-8. Etapa 5.5 — Objetivos y continuidad lectora.
+8. ✅ Etapa 5.5 — Objetivos y continuidad lectora.
 9. Etapa 6 — Inicio.
 10. Etapa 7 — Mi álbum.
 11. Etapa 8 — Importación opcional por API.

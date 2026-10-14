@@ -8,7 +8,7 @@ import { deriveHomeOverview } from "../overview";
 import type { HomeOverview, HomeReading } from "../types";
 import { HomeError, mapHomeReadError } from "./errors";
 
-const HOME_LIBRARY_COLUMNS = `
+export const HOME_LIBRARY_COLUMNS = `
   id,
   edition:editions!user_editions_edition_id_fkey(
     format,
@@ -35,7 +35,7 @@ const HOME_LIBRARY_COLUMNS = `
   )
 `;
 
-type HomeLibraryRow = Readonly<{
+export type HomeLibraryRow = Readonly<{
   id: string;
   edition: Readonly<{
     format: string;
@@ -69,7 +69,7 @@ function parseProgressUnit(value: string): ReadingProgressUnit {
   throw new HomeError("unexpected", { operation: "mapHomeReadings" });
 }
 
-function mapHomeReadings(rows: readonly HomeLibraryRow[]): HomeReading[] {
+export function mapHomeReadings(rows: readonly HomeLibraryRow[]): HomeReading[] {
   return rows.flatMap((row) => {
     const edition = row.edition;
     const work = edition?.work;

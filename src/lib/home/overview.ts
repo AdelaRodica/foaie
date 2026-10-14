@@ -17,7 +17,9 @@ type HomeOverviewInput = Readonly<{
   readingDaysPerWeek: number;
 }>;
 
-function summarize(readings: readonly HomeReading[]): HomePeriodSummary {
+export function summarizeFinishedReadings(
+  readings: readonly HomeReading[],
+): HomePeriodSummary {
   return readings.reduce<HomePeriodSummary>((summary, reading) => {
     const isAudio = reading.book.format === "AUDIOBOOK";
     const pageCount = isAudio ? null : reading.book.pageCount;
@@ -102,8 +104,8 @@ export function deriveHomeOverview({
     hasLibrary,
     activeReadings,
     recentFinished,
-    monthSummary: summarize(monthFinished),
-    yearSummary: summarize(yearFinished),
+    monthSummary: summarizeFinishedReadings(monthFinished),
+    yearSummary: summarizeFinishedReadings(yearFinished),
     monthlyFinishedCounts,
     readingGoals: deriveReadingGoalsOverview({
       currentDate,

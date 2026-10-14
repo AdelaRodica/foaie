@@ -445,7 +445,7 @@ Cada año es un álbum; los meses son capítulos; una página lógica es un frag
 
 **Regla temporal:** una sesión pertenece al año y mes de `finished_at`, según la zona horaria de la usuaria. Se ordena por `finished_at` y un desempate estable. Una relectura genera otro cromo con sus propios datos, citas y recuerdo, identificado como `Relectura`.
 
-**Paginación:** un mes puede ocupar una o varias páginas lógicas; nunca se asume `1 mes = 1 página`. El tamaño se decide mediante prototipos que comparen inicialmente 8, 10 y 12 cromos. Una vez elegido, la pertenencia a cada página se calcula antes del layout y permanece estable entre dispositivos. Un mes con pocas lecturas usa una composición más abierta sin crear huecos falsos; un mes vacío no genera páginas de cromos.
+**Paginación:** un mes puede ocupar una o varias páginas lógicas; nunca se asume `1 mes = 1 página`. Stage 7 fija el tamaño global en **8 cromos**, una densidad que conserva portadas legibles en la cuadrícula móvil de dos columnas y produce páginas compactas sin depender del viewport. La pertenencia a cada página se calcula antes del layout y permanece estable entre dispositivos. Un mes con pocas lecturas usa una composición más abierta sin crear huecos falsos; un mes vacío no genera páginas de cromos.
 
 **Acciones:** cambiar año o mes, ir a página anterior/siguiente, abrir la sesión concreta, elegir favorito mensual y acceder a Estadísticas. La URL conserva año, mes y página. No se depende de gestos ni animaciones.
 
@@ -1194,7 +1194,7 @@ Profile 1─N AnnualReadingGoal
 
 En la Etapa 3 solo se materializa el subgrafo global `Work–Edition–Author–Genre–Publisher–Series`. `UserEdition` se incorpora en la Etapa 4, `ReadingSession` y su progreso en la Etapa 5, y las colaboraciones de edición quedan aplazadas.
 
-Mi álbum se deriva de `reading_sessions` con estado `FINISHED`; no añade `album_items`, `album_pages` ni `stickers`. Cada sesión terminada produce un cromo, incluidas las relecturas. Año y mes proceden de `finished_at`; dentro del mes se usa un orden estable por `finished_at`, `created_at` e `id`. La página lógica se calcula a partir de la posición y un tamaño global pendiente de prototipado entre 8, 10 y 12 cromos. El viewport solo cambia la cuadrícula visual, nunca la pertenencia a la página.
+Mi álbum se deriva de `reading_sessions` con estado `FINISHED`; no añade `album_items`, `album_pages` ni `stickers`. Cada sesión terminada produce un cromo, incluidas las relecturas. Año y mes proceden de `finished_at`; dentro del mes se usa un orden ascendente estable por `finished_at`, `created_at` e `id`. La página lógica se calcula a partir de la posición con un tamaño global de 8 cromos. El viewport solo cambia la cuadrícula visual, nunca la pertenencia a la página.
 
 ---
 

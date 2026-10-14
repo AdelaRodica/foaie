@@ -102,8 +102,14 @@ export async function getReadingProfilePreferences(): Promise<ReadingProfilePref
 export async function getReadingGoalsOverview(
   instant: Date = new Date(),
 ): Promise<ReadingGoalsOverview> {
-  const { timezone, readingDaysPerWeek } =
-    await getReadingProfilePreferences();
+  const preferences = await getReadingProfilePreferences();
+  return getReadingGoalsOverviewFromPreferences(preferences, instant);
+}
+
+export async function getReadingGoalsOverviewFromPreferences(
+  { timezone, readingDaysPerWeek }: ReadingProfilePreferences,
+  instant: Date = new Date(),
+): Promise<ReadingGoalsOverview> {
   let currentDate: string;
 
   try {

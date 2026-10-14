@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { readingDaysPerWeekSchema } from "./validation";
 
 describe("readingDaysPerWeekSchema", () => {
-  it.each(["1", "3", "7"])("accepts %s", (readingDaysPerWeek) => {
+  it.each(["1", "3", "5", "7"])("accepts %s", (readingDaysPerWeek) => {
     expect(
       readingDaysPerWeekSchema.parse({ readingDaysPerWeek }),
     ).toEqual({ readingDaysPerWeek: Number(readingDaysPerWeek) });

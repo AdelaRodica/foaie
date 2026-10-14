@@ -1,0 +1,89 @@
+.form,
+.field {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-2);
+}
+
+.form {
+  gap: var(--space-4);
+  max-width: 36rem;
+  padding-block-start: var(--space-2);
+}
+
+.field label {
+  font-weight: var(--font-weight-semibold);
+}
+
+.field select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-min-size);
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-field);
+  background: var(--color-canvas);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.field select:hover {
+  border-color: var(--color-action);
+}
+
+.field select:focus-visible,
+.button:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.hint,
+.error,
+.success {
+  margin: 0;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-relaxed);
+  overflow-wrap: anywhere;
+}
+
+.hint {
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-danger);
+}
+
+.success {
+  color: var(--color-success);
+}
+
+.button {
+  width: fit-content;
+  min-height: var(--control-min-size);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width) solid var(--color-action);
+  border-radius: var(--radius-field);
+  background: var(--color-action);
+  color: var(--color-on-action);
+  cursor: pointer;
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+}
+
+.button:hover {
+  border-color: var(--color-action-hover);
+  background: var(--color-action-hover);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 37.499rem) {
+  .button {
+    width: 100%;
+  }
+}

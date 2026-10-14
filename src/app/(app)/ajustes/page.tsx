@@ -1,9 +1,13 @@
 import { SignOutForm } from "@/components/auth/SignOutForm";
+import { ReadingDaysPerWeekForm } from "@/components/profile/ReadingDaysPerWeekForm";
 import { TimezoneField } from "@/components/profile/TimezoneField";
+import { ReadingGoalDeleteForm } from "@/components/reading-goals/ReadingGoalDeleteForm";
+import { ReadingGoalForm } from "@/components/reading-goals/ReadingGoalForm";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Surface } from "@/components/ui/Surface";
 import { getCurrentUserProfile } from "@/lib/db/profiles";
 import { updateProfileAction } from "@/lib/profile/actions";
+import { getReadingGoalsOverviewFromPreferences } from "@/lib/reading-goals/server/queries";
 
 import pageStyles from "../shared-page.module.css";
 import styles from "./page.module.css";
@@ -19,20 +23,26 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   const hasValidationError = params.error === "datos";
   const hasSaveError = params.error === "guardado";
 
-  let profile = null;
-
-  try {
-    profile = await getCurrentUserProfile();
-  } catch {
-    // La interfaz muestra un error genérico sin exponer detalles de Supabase.
-  }
+  const profile = await getCurrentUserProfile().catch(() => null);
+  const readingGoals = profile
+    ? await getReadingGoalsOverviewFromPreferences({
+        timezone: profile.timezone,
+        readingDaysPerWeek: profile.readingDaysPerWeek,
+      }).catch(() => null)
+    : null;
+  const currentWeekDisplayDays = readingGoals
+    ? Math.min(
+        readingGoals.currentWeekActiveDays,
+        readingGoals.readingDaysPerWeek,
+      )
+    : 0;
 
   return (
     <div className={pageStyles.page}>
       <PageHeader
         eyebrow="Tu espacio"
         title="Ajustes"
-        description="Adapta Foaie a tus preferencias personales."
+        description="Personaliza cómo quieres acompañar tus lecturas en Foaie."
       />
 
       {isWelcome ? (
@@ -57,6 +67,111 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         <p className={`${styles.message} ${styles.error}`} role="alert">
           No hemos podido cargar o guardar tus preferencias. Inténtalo de nuevo.
         </p>
+      ) : null}
+
+      <Surface className={styles.readingSection}>
+        <div className={styles.sectionHeading}>
+          <p className={styles.sectionEyebrow}>Año en curso</p>
+          <h2>Objetivo de lectura</h2>
+          {readingGoals ? (
+            <p>
+              Puedes marcar una referencia para {readingGoals.year}. Podrás
+              cambiarla o eliminarla cuando quieras.
+            </p>
+          ) : (
+            <p>
+              No hemos podido cargar tu objetivo de lectura. Inténtalo de nuevo
+              dentro de unos minutos.
+            </p>
+          )}
+        </div>
+
+        {readingGoals && readingGoals.goal && readingGoals.goalProgress ? (
+          <div className={styles.goalContent}>
+            <div className={styles.goalSummary}>
+              <p className={styles.goalCount}>
+                <strong>{readingGoals.goalProgress.currentCount}</strong> de{" "}
+                {readingGoals.goalProgress.targetCount} lecturas
+              </p>
+              <p className={styles.goalStatus}>
+                {readingGoals.goalProgress.exceeded
+                  ? "Has superado tu objetivo de este año."
+                  : readingGoals.goalProgress.achieved
+                    ? "Has alcanzado tu objetivo de este año."
+                    : readingGoals.goalProgress.remainingCount === 1
+                      ? "Te queda 1 lectura para tu objetivo."
+                      : `Te quedan ${readingGoals.goalProgress.remainingCount} lecturas para tu objetivo.`}
+              </p>
+            </div>
+
+            <ReadingGoalForm
+              mode="update"
+              goalId={readingGoals.goal.id}
+              initialTargetCount={readingGoals.goal.targetCount}
+            />
+            <ReadingGoalDeleteForm
+              goalId={readingGoals.goal.id}
+              year={readingGoals.year}
+            />
+          </div>
+        ) : readingGoals ? (
+          <ReadingGoalForm mode="create" year={readingGoals.year} />
+        ) : (
+          <p className={styles.loadError} role="alert">
+            El objetivo y la racha no están disponibles ahora mismo.
+          </p>
+        )}
+      </Surface>
+
+      {readingGoals ? (
+        <Surface className={styles.readingSection}>
+          <div className={styles.sectionHeading}>
+            <p className={styles.sectionEyebrow}>Actividad semanal</p>
+            <h2>Racha de lectura</h2>
+          </div>
+
+          <dl className={styles.streakStats}>
+            <div>
+              <dt>Esta semana</dt>
+              <dd>
+                {currentWeekDisplayDays} de {readingGoals.readingDaysPerWeek}{" "}
+                {readingGoals.readingDaysPerWeek === 1 ? "día" : "días"}
+              </dd>
+              <p>La semana actual sigue abierta hasta el domingo.</p>
+            </div>
+            <div>
+              <dt>Racha actual</dt>
+              <dd>
+                {readingGoals.streak.current}{" "}
+                {readingGoals.streak.current === 1 ? "semana" : "semanas"}
+              </dd>
+              {readingGoals.streak.current === 0 ? (
+                <p>Todavía no hay una racha activa.</p>
+              ) : null}
+            </div>
+            <div>
+              <dt>Mejor racha</dt>
+              <dd>
+                {readingGoals.streak.longest}{" "}
+                {readingGoals.streak.longest === 1 ? "semana" : "semanas"}
+              </dd>
+              {readingGoals.streak.longest === 0 ? (
+                <p>Todavía no hay una racha registrada.</p>
+              ) : null}
+            </div>
+          </dl>
+
+          <div className={styles.streakExplanation}>
+            <p>
+              Cada semana cuenta cuando registras lectura en el número de días
+              que hayas elegido, de lunes a domingo.
+            </p>
+          </div>
+
+          <ReadingDaysPerWeekForm
+            initialValue={readingGoals.readingDaysPerWeek}
+          />
+        </Surface>
       ) : null}
 
       {profile ? (

@@ -26,6 +26,7 @@ import {
   getAnnualReadingGoal,
   getReadingProfilePreferences,
   getReadingGoalsOverview,
+  getReadingGoalsOverviewFromPreferences,
   listFinishedReadingDates,
   listProgressReadingDates,
 } from "./queries";
@@ -243,6 +244,38 @@ describe("reading goal queries", () => {
     expect(overview.currentWeekActiveDays).toBe(1);
     expect(overview.streak).toEqual({ current: 0, longest: 0 });
     expect(mocks.readClient.from).toHaveBeenCalledTimes(4);
+  });
+
+  it("composes a prefetched profile overview with only three queries", async () => {
+    const goalQuery = createMaybeSingleQuery({ data: null, error: null });
+    const finishedQuery = createFilteredListQuery({
+      data: [
+        { finished_at: "2026-10-05" },
+        { finished_at: "2026-10-06" },
+        { finished_at: "2026-10-07" },
+      ],
+      error: null,
+    });
+    const progressQuery = createFilteredListQuery({ data: [], error: null });
+
+    mocks.readClient.from.mockImplementation((table: string) => {
+      if (table === "annual_reading_goals") return { select: goalQuery.select };
+      if (table === "reading_sessions") return { select: finishedQuery.select };
+      return { select: progressQuery.select };
+    });
+
+    const overview = await getReadingGoalsOverviewFromPreferences(
+      { timezone: "UTC", readingDaysPerWeek: 3 },
+      new Date("2026-10-09T12:00:00.000Z"),
+    );
+
+    expect(overview).toMatchObject({
+      readingDaysPerWeek: 3,
+      currentWeekActiveDays: 3,
+      streak: { current: 1, longest: 1 },
+    });
+    expect(mocks.readClient.from).toHaveBeenCalledTimes(3);
+    expect(mocks.readClient.from).not.toHaveBeenCalledWith("profiles");
   });
 
   it("uses the stored threshold to recalculate the same activity history", async () => {

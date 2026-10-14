@@ -6,6 +6,7 @@ import {
 export type CurrentUserProfile = Readonly<{
   displayName: string | null;
   timezone: string;
+  readingDaysPerWeek: number;
 }>;
 
 type ProfileUpdate = Readonly<{
@@ -54,17 +55,24 @@ export async function getCurrentUserProfile(): Promise<CurrentUserProfile> {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("display_name, timezone")
+    .select("display_name, timezone, reading_days_per_week")
     .eq("id", userId)
     .single();
 
-  if (error || !data) {
+  if (
+    error ||
+    !data ||
+    !Number.isSafeInteger(data.reading_days_per_week) ||
+    data.reading_days_per_week < 1 ||
+    data.reading_days_per_week > 7
+  ) {
     throw profileError;
   }
 
   return {
     displayName: data.display_name,
     timezone: data.timezone,
+    readingDaysPerWeek: data.reading_days_per_week,
   };
 }
 

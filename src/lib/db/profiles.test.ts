@@ -1,18 +1,58 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  createReadOnlyClient: vi.fn(),
   createWritableClient: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createReadOnlyClient: vi.fn(),
+  createReadOnlyClient: mocks.createReadOnlyClient,
   createWritableClient: mocks.createWritableClient,
 }));
 
 import {
+  getCurrentUserProfile,
   ProfileMutationError,
   updateReadingDaysPerWeek,
 } from "./profiles";
+
+describe("getCurrentUserProfile", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("reads all settings profile fields in one query", async () => {
+    const single = vi.fn(async () => ({
+      data: {
+        display_name: "Ada",
+        timezone: "Europe/Madrid",
+        reading_days_per_week: 3,
+      },
+      error: null,
+    }));
+    const eq = vi.fn(() => ({ single }));
+    const select = vi.fn(() => ({ eq }));
+    const client = {
+      auth: {
+        getClaims: vi.fn(async () => ({
+          data: { claims: { sub: "current-user" } },
+          error: null,
+        })),
+      },
+      from: vi.fn(() => ({ select })),
+    };
+    mocks.createReadOnlyClient.mockResolvedValueOnce(client);
+
+    await expect(getCurrentUserProfile()).resolves.toEqual({
+      displayName: "Ada",
+      timezone: "Europe/Madrid",
+      readingDaysPerWeek: 3,
+    });
+    expect(client.from).toHaveBeenCalledOnce();
+    expect(select).toHaveBeenCalledWith(
+      "display_name, timezone, reading_days_per_week",
+    );
+    expect(eq).toHaveBeenCalledWith("id", "current-user");
+  });
+});
 
 function createClient(result: unknown) {
   const maybeSingle = vi.fn(async () => result);
